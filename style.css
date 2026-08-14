@@ -1,0 +1,178 @@
+@import "tailwindcss";
+
+/* Kesişim alanı için çapraz çizgili background */
+.striped-bg {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.5) 2px,
+    rgba(255, 255, 255, 0.5) 4px
+  );
+}
+
+/* Leaflet UI Glassmorphism Override (Zoom & Layer Controls) */
+.leaflet-bar,
+.leaflet-control-layers {
+  background: rgba(6, 78, 59, 0.7) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(52, 211, 153, 0.3) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3) !important;
+  color: white !important;
+}
+
+.leaflet-bar a,
+.leaflet-control-layers-toggle {
+  background-color: transparent !important;
+  color: white !important;
+  border-bottom-color: rgba(52, 211, 153, 0.3) !important;
+}
+
+.leaflet-bar a:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
+}
+
+.leaflet-control-layers-expanded {
+  background: rgba(6, 78, 59, 0.85) !important;
+  color: white !important;
+  border-radius: 0.75rem !important;
+}
+
+.leaflet-control-layers-list label {
+  color: #ecfdf5 !important;
+}
+
+/* Leaflet Popup Özelleştirmeleri (Glassmorphism) */
+.custom-popup .leaflet-popup-content-wrapper {
+  background: rgba(6, 78, 59, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  color: white !important;
+  border: 1px solid rgba(52, 211, 153, 0.3) !important;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+  padding: 0;
+}
+
+.custom-popup .leaflet-popup-tip {
+  background: rgba(6, 78, 59, 0.8) !important;
+}
+
+.custom-popup .leaflet-popup-content {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.custom-popup .leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+
+/* Leaflet Attribution Gizleme */
+.leaflet-control-attribution {
+  display: none !important;
+}
+
+/* --- GEOMAN (ÇİZİM/ÖLÇÜM) BOTTOM-CENTER VE GLASSMORPHISM --- */
+/* Bottom-Left container'ını merkeze çekmek için */
+.leaflet-bottom.leaflet-left {
+  position: absolute;
+  bottom: 0 !important; /* Alt kısımda boşluk kalmayacak */
+  left: 0 !important;
+  width: 100% !important;
+  transform: none !important;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  justify-content: center;
+  align-items: flex-end;
+  pointer-events: none; /* Container tıklamayı yemesin */
+  gap: 0.25rem; /* Draw ve Edit menüleri arası boşluk */
+  padding-bottom: 0.25rem; /* Çok hafif bir nefes payı (sınıra dayanmasın) */
+}
+
+/* Geoman Toolbar Container (Yan yana araçlar) */
+.leaflet-pm-toolbar {
+  pointer-events: auto; /* Toolbar tıklamayı alsın */
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  justify-content: center;
+  background: rgba(6, 78, 59, 0.7) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(52, 211, 153, 0.3) !important;
+  border-radius: 0.5rem !important; /* Daha kompakt yuvarlaklık */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+  padding: 0.15rem !important;
+  margin: 0 !important;
+  gap: 0.15rem;
+}
+
+/* Buton Grupları */
+.leaflet-pm-toolbar .button-container {
+  display: flex !important;
+  margin: 0 !important;
+}
+
+/* Butonlar (Araçlar) */
+.leaflet-pm-toolbar a {
+  background-color: transparent !important;
+  border: none !important;
+  color: #ecfdf5 !important;
+  border-radius: 0.3rem !important;
+  width: 26px !important; /* Mobilde sığması için küçültüldü */
+  height: 26px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease;
+}
+
+.leaflet-pm-toolbar a:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Aktif (Seçili) Buton */
+.leaflet-pm-toolbar a.active {
+  background-color: rgba(16, 185, 129, 0.6) !important; /* Emerald 500 */
+}
+
+/* Ölçüm / İpucu Tooltipleri */
+.leaflet-pm-tooltip {
+  background: rgba(6, 78, 59, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  color: #ecfdf5 !important;
+  border: 1px solid rgba(52, 211, 153, 0.4) !important;
+  border-radius: 0.5rem !important;
+  padding: 0.5rem 0.75rem !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Geoman ikonlarını cam temada okunaklı yapmak için beyazlaştır ve küçült */
+/* Geoman butonları genelde .leaflet-pm-icon-polygon vb. classlar alır */
+.leaflet-pm-toolbar a[class*="leaflet-pm-icon"],
+.leaflet-pm-toolbar .button-container a {
+  filter: brightness(0) invert(1) !important; 
+}
+
+/* Masaüstü Ekranlarda Boyutları Büyüt */
+@media (min-width: 640px) {
+  .leaflet-bottom.leaflet-left {
+    padding-bottom: 0.5rem; /* Masaüstünde biraz daha yukarıda */
+  }
+  .leaflet-pm-toolbar a {
+    width: 32px !important;
+    height: 32px !important;
+  }
+}
+
+/* Geoman Action Text (Finish / Cancel) vb. eylem metinlerini gizle */
+.leaflet-pm-toolbar .action-container,
+.leaflet-pm-toolbar .button-container .action-container {
+  display: none !important;
+}
