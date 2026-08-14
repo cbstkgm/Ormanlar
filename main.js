@@ -492,11 +492,11 @@ function renderList() {
           
           <!-- Masaüstünde (hidden sm:flex) Orman A ve B Kutuları -->
           <div class="hidden sm:flex gap-2 text-sm w-1/2">
-            <div class="bg-blue-50/90 px-3 py-1.5 rounded-lg border border-blue-100/50 flex-1 min-w-[120px]">
+            <div class="bg-blue-50/90 px-3 py-1.5 rounded-lg border border-blue-100/50 flex-1 min-w-30">
               <p class="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">Orman A</p>
               <p class="text-gray-800 font-bold text-xs">${record.parsel_a_adano || '-'}/${record.parsel_a_parselno || '-'}</p>
             </div>
-            <div class="bg-emerald-50/90 px-3 py-1.5 rounded-lg border border-emerald-100/50 flex-1 min-w-[120px]">
+            <div class="bg-emerald-50/90 px-3 py-1.5 rounded-lg border border-emerald-100/50 flex-1 min-w-30">
               <p class="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">Orman B</p>
               <p class="text-gray-800 font-bold text-xs">${record.parsel_b_adano || '-'}/${record.parsel_b_parselno || '-'}</p>
             </div>
@@ -504,7 +504,7 @@ function renderList() {
           
         </div>
         
-        <div class="bg-white/90 sm:bg-transparent px-3 py-2 sm:px-4 sm:py-0 border-t sm:border-t-0 sm:border-l border-gray-200/60 flex flex-row sm:flex-col items-center sm:justify-center justify-between sm:min-w-[120px]">
+        <div class="bg-white/90 sm:bg-transparent px-3 py-2 sm:px-4 sm:py-0 border-t sm:border-t-0 sm:border-l border-gray-200/60 flex flex-row sm:flex-col items-center sm:justify-center justify-between sm:min-w-30">
            <span class="text-[10px] font-semibold text-gray-500 uppercase sm:mb-1">Kesişim</span>
            <span class="text-xs sm:text-sm font-bold text-red-600">${parseFloat(record.kesisim_alani_m2 || 0).toFixed(2)} m²</span>
         </div>
