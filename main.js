@@ -707,10 +707,10 @@ function setStepActive(stepId) {
 // Global Ziyaretçi Sayacı
 async function updateVisitorCount() {
   try {
-    const res = await fetch('https://api.counterapi.dev/v1/cbstkgm/ormanlar3/up');
+    const res = await fetch('https://countapi.mileshilliard.com/api/v1/hit/cbstkgm-ormanlar3-app');
     const data = await res.json();
     const countEl = document.getElementById('visitor-count');
-    if (countEl) countEl.textContent = data.count.toLocaleString();
+    if (countEl) countEl.textContent = data.value.toLocaleString();
   } catch(e) {
     const countEl = document.getElementById('visitor-count');
     if (countEl) countEl.textContent = '...';
