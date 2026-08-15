@@ -527,6 +527,7 @@ function loadData() {
     download: true,
     header: true,
     worker: true,
+    delimiter: ';',
     skipEmptyLines: true,
     complete: function (results) {
       allData = results.data;
