@@ -45,7 +45,8 @@ let allData = [];
 let filteredData = []; // Arama sonrası filtrelenmiş verileri tutar
 let currentViewMode = 'list'; // 'grid' veya 'list'
 let currentPage = 1;
-let itemsPerPage = 25;
+// Mobil cihazlar (genişlik < 640px) için 10, diğerleri için 100
+let itemsPerPage = window.innerWidth < 640 ? 10 : 100;
 
 // View Toggles DOM Elements
 const viewTogglesContainer = document.getElementById('view-toggles');
@@ -693,6 +694,11 @@ async function loadData() {
 
 // Uygulama Başlatma
 document.addEventListener('DOMContentLoaded', () => {
+  // Ekran genişliğine göre atanan varsayılan değeri Select kutusuna yansıt
+  if (itemsPerPageSelect) {
+    itemsPerPageSelect.value = itemsPerPage.toString();
+  }
+  
   updateViewToggleUI();
   loadData();
   updateVisitorCount();
