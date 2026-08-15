@@ -4,6 +4,7 @@ import L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import Wkt from 'wicket';
+import JSZip from 'jszip';
 // DOM Elements
 const listContainer = document.getElementById('list-container');
 const loading = document.getElementById('loading');
@@ -13,7 +14,172 @@ const mapTitle = document.getElementById('map-title');
 const recordCount = document.getElementById('record-count');
 const searchInput = document.getElementById('search-input');
 
-// Gelişmiş Filtreleme DOM
+// Zip İndirme DOM Elemanları
+const downloadDropdownBtn = document.getElementById('download-dropdown-btn');
+const downloadDropdownMenu = document.getElementById('download-dropdown-menu');
+const downloadSelectedCityBtn = document.getElementById('download-selected-city-btn');
+const downloadAllCitiesBtn = document.getElementById('download-all-cities-btn');
+const zipOverlay = document.getElementById('zip-download-overlay');
+const zipProgressBar = document.getElementById('zip-download-progress-bar');
+const zipProgressText = document.getElementById('zip-download-progress-text');
+
+// Custom Alert DOM ve Fonksiyonları
+const customAlertOverlay = document.getElementById('custom-alert-overlay');
+const customAlertMessage = document.getElementById('custom-alert-message');
+const customAlertCloseBtn = document.getElementById('custom-alert-close-btn');
+
+function showCustomAlert(message) {
+  if (customAlertOverlay && customAlertMessage) {
+    customAlertMessage.textContent = message;
+    customAlertOverlay.classList.remove('hidden');
+    customAlertOverlay.classList.add('flex');
+    setTimeout(() => {
+      customAlertOverlay.classList.remove('opacity-0');
+      const modal = document.getElementById('custom-alert-modal');
+      if (modal) {
+        modal.classList.remove('scale-95');
+        modal.classList.add('scale-100');
+      }
+    }, 10);
+  } else {
+    alert(message);
+  }
+}
+
+function closeCustomAlert() {
+  if (customAlertOverlay) {
+    customAlertOverlay.classList.add('opacity-0');
+    const modal = document.getElementById('custom-alert-modal');
+    if (modal) {
+      modal.classList.remove('scale-100');
+      modal.classList.add('scale-95');
+    }
+    setTimeout(() => {
+      customAlertOverlay.classList.add('hidden');
+      customAlertOverlay.classList.remove('flex');
+    }, 300);
+  }
+}
+
+if (customAlertCloseBtn) {
+  customAlertCloseBtn.addEventListener('click', closeCustomAlert);
+}
+
+// Gelişmiş Filtreleme Değişkenleri
+let appliedFilters = {
+  ilce: [],
+  mahalle: [],
+  ada: [],
+  parsel: [],
+  kesisimOp: '',
+  kesisimVal: '',
+  tapuCins: []
+};
+
+// --- ZIP İNDİRME LOGIC ---
+if (downloadDropdownBtn && downloadDropdownMenu) {
+  // Dropdown aç/kapat
+  downloadDropdownBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    downloadDropdownMenu.classList.toggle('hidden');
+  });
+
+  // Dışarı tıklayınca menüyü kapat
+  document.addEventListener('click', () => {
+    if (!downloadDropdownMenu.classList.contains('hidden')) {
+      downloadDropdownMenu.classList.add('hidden');
+    }
+  });
+
+  // Ortak Zip İndirme Fonksiyonu
+  const downloadZip = async (fileName, fetchUrl) => {
+    try {
+      zipOverlay.classList.remove('hidden');
+      zipOverlay.classList.add('flex');
+      zipProgressBar.style.width = '0%';
+      zipProgressText.textContent = '0%';
+      
+      const zip = new JSZip();
+      
+      const response = await fetch(fetchUrl);
+      if (!response.ok) throw new Error('Dosya bulunamadı.');
+
+      const contentLength = response.headers.get('content-length');
+      const total = contentLength ? parseInt(contentLength, 10) : 400000000;
+      let loaded = 0;
+
+      const reader = response.body.getReader();
+      const chunks = [];
+
+      while(true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.length;
+        
+        let progress = Math.round((loaded / total) * 50);
+        if (progress > 50) progress = 50;
+        zipProgressBar.style.width = `${progress}%`;
+        zipProgressText.textContent = `İndiriliyor: ${progress}%`;
+      }
+      
+      const blob = new Blob(chunks, { type: 'text/csv' });
+      zip.file(fileName, blob);
+      
+      const content = await zip.generateAsync({ type: 'blob', compression: "DEFLATE", compressionOptions: { level: 6 } }, function updateCallback(metadata) {
+          const zipProgress = Math.round(50 + (metadata.percent / 2));
+          zipProgressBar.style.width = `${zipProgress}%`;
+          zipProgressText.textContent = `Sıkıştırılıyor: ${zipProgress}%`;
+      });
+      
+      zipProgressBar.style.width = '100%';
+      zipProgressText.textContent = '100% - Tamamlandı!';
+      
+      const url = window.URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = fileName.replace('.csv', '.zip');
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      
+      setTimeout(() => {
+        zipOverlay.classList.remove('flex');
+        zipOverlay.classList.add('hidden');
+      }, 1500);
+
+    } catch (error) {
+      console.error("Zip indirme hatası:", error);
+      showCustomAlert('İndirme sırasında bir hata oluştu: ' + error.message);
+      zipOverlay.classList.remove('flex');
+      zipOverlay.classList.add('hidden');
+    }
+  };
+
+  // Tüm İlleri İndir
+  if (downloadAllCitiesBtn) {
+    downloadAllCitiesBtn.addEventListener('click', () => {
+      downloadZip('MukerrerOrmanlar_Tumiller.csv', 'MukerrerOrmanlar_Tumiller.csv');
+    });
+  }
+
+  // Seçili İli İndir
+  if (downloadSelectedCityBtn) {
+    downloadSelectedCityBtn.addEventListener('click', () => {
+      const citySelect = document.getElementById('header-city-select');
+      const selectedCity = citySelect ? citySelect.value : '';
+      if (!selectedCity) {
+        showCustomAlert("Lütfen önce bir il seçiniz.");
+        return;
+      }
+      downloadZip(`MukerrerOrmanlar_${selectedCity}.csv`, `iller/${selectedCity}.csv`);
+    });
+  }
+}
+
+// ----------------- FONKSİYONLAR -----------------
 const openFilterBtn = document.getElementById('open-filter-btn');
 const closeFilterBtn = document.getElementById('close-filter-btn');
 const filterOverlay = document.getElementById('filter-overlay');
@@ -815,16 +981,11 @@ async function loadData(ilAdi) {
     statusText.textContent = 'Harita hazırlandı!';
     if (parseBar) parseBar.classList.remove('animate-pulse');
     
-    // Verileri İl ve İlçeye göre (A'dan Z'ye) Türkçe karakter uyumlu sırala
+    // Verileri Kesişim Alanına göre (Büyükten Küçüğe) sırala
     allData.sort((a, b) => {
-      const ilA = a.ilad || '';
-      const ilB = b.ilad || '';
-      const ilFarki = ilA.localeCompare(ilB, 'tr-TR');
-      if (ilFarki !== 0) return ilFarki;
-      
-      const ilceA = a.ilcead || '';
-      const ilceB = b.ilcead || '';
-      return ilceA.localeCompare(ilceB, 'tr-TR');
+      const alanA = parseFloat(a.kesisim_alani_m2) || 0;
+      const alanB = parseFloat(b.kesisim_alani_m2) || 0;
+      return alanB - alanA;
     });
 
     // Filtre Panelindeki Verileri Başlangıç İçin Doldur
