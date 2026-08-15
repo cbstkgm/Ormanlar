@@ -4,7 +4,7 @@ import L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import Wkt from 'wicket';
-
+import JSZip from 'jszip';
 // DOM Elements
 const listContainer = document.getElementById('list-container');
 const loading = document.getElementById('loading');
@@ -520,41 +520,80 @@ function renderList() {
   });
 }
 
-// CSV Verisini Fetch Etme
-function loadData() {
-  const csvUrl = new URL('MukerrerOrmanlar.csv', window.location.href).href;
-  Papa.parse(csvUrl, {
-    download: true,
-    header: true,
-    worker: true,
-    delimiter: ';',
-    skipEmptyLines: true,
-    complete: function (results) {
-      allData = results.data;
-      
-      // İl ve İlçeye göre A'dan Z'ye (Türkçe karakter uyumlu) sıralama
-      allData.sort((a, b) => {
-        const ilA = (a.ilad || '').trim();
-        const ilB = (b.ilad || '').trim();
-        const ilCompare = ilA.localeCompare(ilB, 'tr');
-        
-        if (ilCompare !== 0) return ilCompare; // İller farklıysa ile göre sırala
-        
-        // İller aynıysa ilçeye göre sırala
-        const ilceA = (a.ilcead || '').trim();
-        const ilceB = (b.ilcead || '').trim();
-        return ilceA.localeCompare(ilceB, 'tr');
-      });
-
-      filteredData = [...allData]; // Başlangıçta hepsi gösterilir
-      searchInput.disabled = false; // Arama kutusunu aktifleştir
-      renderList();
-    },
-    error: function (error) {
-      console.error("CSV Yükleme Hatası:", error);
-      loading.innerHTML = `<p class="text-red-500">Veriler yüklenirken bir hata oluştu.</p>`;
+// CSV Verisini ZIP içerisinden Fetch Etme
+async function loadData() {
+  try {
+    recordCount.textContent = 'Veri indiriliyor (ZIP)...';
+    loading.innerHTML = `<p class="text-emerald-700 font-medium">Veri indiriliyor (141 MB)... Lütfen bekleyin.</p>`;
+    
+    // 1. ZIP dosyasını indir
+    const zipUrl = new URL('MukerrerOrmanlar.csv.zip', window.location.href).href;
+    const response = await fetch(zipUrl);
+    
+    if (!response.ok) {
+      throw new Error(`Ağ hatası: ${response.status}`);
     }
-  });
+    
+    recordCount.textContent = 'Veri çıkartılıyor...';
+    loading.innerHTML = `<p class="text-emerald-700 font-medium">Veri bilgisayarınıza çıkarılıyor (Unzip)... Bu işlem RAM kullanacaktır.</p>`;
+    
+    const arrayBuffer = await response.arrayBuffer();
+    
+    // 2. JSZip ile bellekte aç
+    const zip = await JSZip.loadAsync(arrayBuffer);
+    
+    // İçindeki CSV dosyasını bul
+    const csvFilename = Object.keys(zip.files).find(name => name.endsWith('.csv'));
+    if (!csvFilename) {
+      throw new Error('ZIP içinde .csv uzantılı dosya bulunamadı!');
+    }
+    
+    const csvFile = zip.files[csvFilename];
+    recordCount.textContent = 'Veri işleniyor...';
+    loading.innerHTML = `<p class="text-emerald-700 font-medium">Veriler haritaya dökülüyor (Parse)... Harita hazırlanıyor.</p>`;
+    
+    // CSV metnini çıkar
+    const csvText = await csvFile.async('string');
+    
+    // 3. PapaParse ile metni parse et
+    Papa.parse(csvText, {
+      header: true,
+      worker: true,
+      delimiter: ';',
+      skipEmptyLines: true,
+      complete: function (results) {
+        allData = results.data;
+        
+        // İl ve İlçeye göre A'dan Z'ye (Türkçe karakter uyumlu) sıralama
+        allData.sort((a, b) => {
+          const ilA = (a.ilad || '').trim();
+          const ilB = (b.ilad || '').trim();
+          const ilCompare = ilA.localeCompare(ilB, 'tr');
+          
+          if (ilCompare !== 0) return ilCompare; // İller farklıysa ile göre sırala
+          
+          // İller aynıysa ilçeye göre sırala
+          const ilceA = (a.ilcead || '').trim();
+          const ilceB = (b.ilcead || '').trim();
+          return ilceA.localeCompare(ilceB, 'tr');
+        });
+
+        filteredData = [...allData]; // Başlangıçta hepsi gösterilir
+        searchInput.disabled = false; // Arama kutusunu aktifleştir
+        renderList();
+      },
+      error: function (error) {
+        console.error("CSV Ayrıştırma Hatası:", error);
+        loading.innerHTML = `<p class="text-red-500">Veriler ayrıştırılırken bir hata oluştu.</p>`;
+        recordCount.textContent = 'Hata!';
+      }
+    });
+
+  } catch (err) {
+    console.error("CSV Yükleme Hatası:", err);
+    loading.innerHTML = `<p class="text-red-500">ZIP dosyası indirilirken veya açılırken hata oluştu: ${err.message}</p>`;
+    recordCount.textContent = 'Hata!';
+  }
 }
 
 // Uygulama Başlatma
