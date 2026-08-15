@@ -54,20 +54,48 @@
              <p class="text-sm text-emerald-200/80 mt-1" id="loading-status">Hazırlanıyor...</p>
           </div>
           
-          <ul class="space-y-5 text-sm font-medium">
-             <li id="step-download" class="flex items-center text-gray-400 transition-colors duration-300">
-               <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-               <span>1. İndirme (Cache)</span>
+          <ul class="space-y-6 text-sm font-medium w-full mt-4">
+             <li id="step-download" class="flex flex-col text-gray-400 transition-colors duration-300 w-full">
+               <div class="flex items-center justify-between w-full">
+                 <div class="flex items-center">
+                   <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                   <span>1. İndirme (Cache)</span>
+                 </div>
+                 <span id="prog-txt-download" class="text-xs font-bold opacity-0 transition-opacity">0%</span>
+               </div>
+               <div class="w-full bg-emerald-950 rounded-full h-1.5 mt-2 overflow-hidden">
+                   <div id="prog-bar-download" class="bg-gradient-to-r from-emerald-500 to-emerald-300 h-1.5 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(52,211,153,0.5)]" style="width: 0%"></div>
+               </div>
              </li>
-             <li id="step-unzip" class="flex items-center text-gray-400 transition-colors duration-300">
-               <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
-               <span>2. Çıkartma (Bellek)</span>
+             <li id="step-unzip" class="flex flex-col text-gray-400 transition-colors duration-300 w-full">
+               <div class="flex items-center justify-between w-full">
+                 <div class="flex items-center">
+                   <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                   <span>2. Çıkartma (Bellek)</span>
+                 </div>
+                 <span id="prog-txt-unzip" class="text-xs font-bold opacity-0 transition-opacity">0%</span>
+               </div>
+               <div class="w-full bg-emerald-950 rounded-full h-1.5 mt-2 overflow-hidden">
+                   <div id="prog-bar-unzip" class="bg-gradient-to-r from-emerald-500 to-emerald-300 h-1.5 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(52,211,153,0.5)]" style="width: 0%"></div>
+               </div>
              </li>
-             <li id="step-parse" class="flex items-center text-gray-400 transition-colors duration-300">
-               <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-               <span>3. Haritaya Aktarım</span>
+             <li id="step-parse" class="flex flex-col text-gray-400 transition-colors duration-300 w-full">
+               <div class="flex items-center justify-between w-full">
+                 <div class="flex items-center">
+                   <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                   <span>3. Haritaya Aktarım</span>
+                 </div>
+               </div>
+               <div class="w-full bg-emerald-950 rounded-full h-1.5 mt-2 overflow-hidden">
+                   <div id="prog-bar-parse" class="bg-gradient-to-r from-emerald-500 to-emerald-300 h-1.5 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(52,211,153,0.5)] w-full opacity-0"></div>
+               </div>
              </li>
           </ul>
+          
+          <div class="mt-8 p-3 bg-emerald-950/50 rounded-lg border border-emerald-500/20 text-center w-full">
+             <span class="text-[11px] text-emerald-300/70 font-mono tracking-wider block">KAYIT KONUMU</span>
+             <span class="text-xs text-white mt-1 block">Tarayıcı Korumalı Önbelleği (Downloads'a inmez)</span>
+          </div>
         </div>
     </div>
     

@@ -546,6 +546,21 @@ async function updateVisitorCount() {
   }
 }
 
+// İlerleme Çubuğu Güncelleyici
+function updateProgress(stepId, percent) {
+  const bar = document.getElementById(`prog-bar-${stepId}`);
+  const txt = document.getElementById(`prog-txt-${stepId}`);
+  if (bar && txt) {
+    if (percent > 0) {
+      txt.classList.remove('opacity-0');
+      if (stepId === 'parse') bar.classList.remove('opacity-0');
+    }
+    if (percent > 100) percent = 100;
+    bar.style.width = `${percent}%`;
+    txt.textContent = `${Math.round(percent)}%`;
+  }
+}
+
 // CSV Verisini ZIP içerisinden Fetch Etme (Cache Destekli)
 async function loadData() {
   try {
@@ -558,47 +573,81 @@ async function loadData() {
     
     statusText.textContent = 'Ağdan veya önbellekten indiriliyor (141 MB)...';
     
-    let response;
+    let arrayBuffer;
     const cache = await caches.open(cacheName);
     const cachedResponse = await cache.match(zipUrl);
     
     if (cachedResponse) {
-       response = cachedResponse;
+       updateProgress('download', 100);
        setStepActive('step-download');
        statusText.textContent = 'Önbellekten (Cache) anında yüklendi!';
+       arrayBuffer = await cachedResponse.arrayBuffer();
     } else {
-       response = await fetch(zipUrl);
+       const response = await fetch(zipUrl);
        if (!response.ok) throw new Error(`Ağ hatası: ${response.status}`);
        
-       // Cache'e kopyala (clone önemli!)
-       await cache.put(zipUrl, response.clone());
+       const contentLength = response.headers.get('content-length');
+       const total = contentLength ? parseInt(contentLength, 10) : 148473000;
+       
+       const reader = response.body.getReader();
+       let received = 0;
+       const chunks = [];
+       
+       while(true) {
+         const {done, value} = await reader.read();
+         if (done) break;
+         chunks.push(value);
+         received += value.length;
+         updateProgress('download', (received / total) * 100);
+       }
+       
+       let chunksAll = new Uint8Array(received);
+       let position = 0;
+       for(let chunk of chunks) {
+         chunksAll.set(chunk, position);
+         position += chunk.length;
+       }
+       arrayBuffer = chunksAll.buffer;
+       
+       // Cache'e kopyala
+       const cacheResponse = new Response(arrayBuffer, { headers: response.headers });
+       await cache.put(zipUrl, cacheResponse);
+       
        setStepActive('step-download');
        statusText.textContent = 'Dosya başarıyla indirildi ve diske kaydedildi.';
     }
     
     statusText.textContent = 'Veri bilgisayarınıza çıkarılıyor (Unzip)...';
-    const arrayBuffer = await response.arrayBuffer();
     
     // 2. JSZip ile bellekte aç
     const zip = await JSZip.loadAsync(arrayBuffer);
     const csvFilename = Object.keys(zip.files).find(name => name.endsWith('.csv'));
     if (!csvFilename) throw new Error('ZIP içinde .csv bulunamadı!');
     
+    const csvFile = zip.files[csvFilename];
+    
+    // Progress göstergeli ZIP çıkarma ve String belleği yerine BLOB kullanımı!
+    const csvBlob = await csvFile.async('blob', function updateCallback(metadata) {
+        updateProgress('unzip', metadata.percent);
+    });
+    
     setStepActive('step-unzip');
     statusText.textContent = 'Veriler haritaya dökülüyor (Parse)...';
+    updateProgress('parse', 10);
+    const parseBar = document.getElementById('prog-bar-parse');
+    if (parseBar) parseBar.classList.add('animate-pulse');
     
-    const csvFile = zip.files[csvFilename];
-    const csvText = await csvFile.async('string');
-    
-    // 3. PapaParse ile metni parse et
-    Papa.parse(csvText, {
+    // 3. PapaParse ile BLOB'u parse et (String olmadığı için TypeError vermez)
+    Papa.parse(csvBlob, {
       header: true,
       worker: true,
       delimiter: ';',
       skipEmptyLines: true,
       complete: function (results) {
+        updateProgress('parse', 100);
         setStepActive('step-parse');
         statusText.textContent = 'Harita hazırlandı!';
+        if (parseBar) parseBar.classList.remove('animate-pulse');
         
         allData = results.data;
         allData.sort((a, b) => {
