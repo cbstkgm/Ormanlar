@@ -570,129 +570,76 @@ async function loadData() {
   try {
     recordCount.textContent = 'Veri hazırlanıyor...';
     const statusText = document.getElementById('loading-status');
+    statusText.textContent = 'Harita verileri ağdan okunuyor...';
     
-    // 1. ZIP dosyasını indir (Cache Kontrolü)
-    const zipUrl = new URL('MukerrerOrmanlar.csv.zip', window.location.href).href;
-    const cacheName = 'ormanlar-cache-v1';
-    
-    statusText.textContent = 'Ağdan veya önbellekten indiriliyor (141 MB)...';
-    
-    let arrayBuffer;
-    const cache = await caches.open(cacheName);
-    const cachedResponse = await cache.match(zipUrl);
-    
-    if (cachedResponse) {
-       updateProgress('download', 100);
-       setStepActive('step-download');
-       statusText.textContent = 'Önbellekten (Cache) anında yüklendi!';
-       arrayBuffer = await cachedResponse.arrayBuffer();
-    } else {
-       const response = await fetch(zipUrl);
-       if (!response.ok) throw new Error(`Ağ hatası: ${response.status}`);
-       
-       const contentLength = response.headers.get('content-length');
-       const total = contentLength ? parseInt(contentLength, 10) : 148473000;
-       
-       const reader = response.body.getReader();
-       let received = 0;
-       const chunks = [];
-       
-       while(true) {
-         const {done, value} = await reader.read();
-         if (done) break;
-         chunks.push(value);
-         received += value.length;
-         updateProgress('download', (received / total) * 100);
-       }
-       
-       let chunksAll = new Uint8Array(received);
-       let position = 0;
-       for(let chunk of chunks) {
-         chunksAll.set(chunk, position);
-         position += chunk.length;
-       }
-       arrayBuffer = chunksAll.buffer;
-       
-       // Cache'e kopyala
-       const cacheResponse = new Response(arrayBuffer, { headers: response.headers });
-       await cache.put(zipUrl, cacheResponse);
-       
-       setStepActive('step-download');
-       statusText.textContent = 'Dosya başarıyla indirildi ve diske kaydedildi.';
-    }
-    
-    statusText.textContent = 'Veri bilgisayarınıza çıkarılıyor (Unzip)...';
-    
-    // 2. JSZip ile bellekte aç
-    const zip = await JSZip.loadAsync(arrayBuffer);
-    const csvFilename = Object.keys(zip.files).find(name => name.endsWith('.csv'));
-    if (!csvFilename) throw new Error('ZIP içinde .csv bulunamadı!');
-    
-    const csvFile = zip.files[csvFilename];
-    
-    // Progress göstergeli ZIP çıkarma ve String belleği yerine BLOB kullanımı!
-    const csvBlob = await csvFile.async('blob', function updateCallback(metadata) {
-        updateProgress('unzip', metadata.percent);
-    });
-    
+    // Eski mimarideki JSZip iptal edildi. Görsel çubukları 100 yapıp geçiyoruz.
+    updateProgress('download', 100);
+    setStepActive('step-download');
+    updateProgress('unzip', 100);
     setStepActive('step-unzip');
+    
+    setStepActive('step-parse');
     statusText.textContent = 'Veriler haritaya dökülüyor (Parse)...';
     updateProgress('parse', 10);
     const parseBar = document.getElementById('prog-bar-parse');
     if (parseBar) parseBar.classList.add('animate-pulse');
-    
-    // UI'ın (İlerleme çubuklarının) ekrana çizilmesini garanti altına almak için kısa bir bekleme
-    setTimeout(() => {
-      // Çökmeleri önlemek için veriyi global diziye parçalar halinde ekleyeceğiz
-      allData = [];
-      let parsedCount = 0;
 
-      Papa.parse(csvBlob, {
-        header: true,
-        worker: false, // Worker kullanımı Github Pages'te yol sorununa/donmaya yol açtığı için iptal edildi.
-        delimiter: ';',
-        skipEmptyLines: true,
-        // Chunk (Parça Parça İşleme): Mobil tarayıcı (Safari/Chrome) donmasını/çökmesini %100 önler
-        chunk: function (results, parser) {
-          parser.pause(); // Tarayıcıya nefes aldırmak için işlemi anlık durdur
-          
-          allData.push(...results.data);
-          parsedCount += results.data.length;
-          
-          // Ekrana yüzeysel bir yüzde yansıt (Tahmini)
-          const estimate = Math.min(99, 10 + Math.floor((parsedCount / 9000) * 90));
-          updateProgress('parse', estimate);
-          
-          // 25ms mola (Garbage Collector RAM'i temizler, telefon kilitlenmez)
-          setTimeout(() => {
-             parser.resume();
-          }, 25);
-        },
-        complete: function () {
-          updateProgress('parse', 100);
-          setStepActive('step-parse');
-          statusText.textContent = 'Harita hazırlandı!';
-          if (parseBar) parseBar.classList.remove('animate-pulse');
-          
-          // Fazladan kopyalama (RAM) yapmamak için doğrudan referans atıyoruz
-          filteredData = allData;
-          searchInput.disabled = false;
-          renderList();
-          
-          // Yükleme ekranını gizle (Sinematik Fade Out)
-          setTimeout(() => {
-             loading.classList.add('opacity-0');
-             setTimeout(() => { loading.classList.add('hidden'); }, 700);
-          }, 800);
-        },
-        error: function (error) {
-          console.error("CSV Ayrıştırma Hatası:", error);
-          statusText.textContent = 'Veriler ayrıştırılırken hata oluştu!';
-          statusText.classList.add('text-red-400');
-          recordCount.textContent = 'Hata!';
-        }
-      });
-    }, 500);
+    // Sunucuda 6 parçaya böldüğümüz veriler (RAM'i zorlamamak için)
+    const parts = ['part_aa.csv', 'part_ab.csv', 'part_ac.csv', 'part_ad.csv', 'part_ae.csv', 'part_af.csv'];
+    allData = [];
+    let parsedCount = 0;
+    const totalExpected = 8752; // Tahmini toplam satır sayısı
+    
+    // Parçaları sırayla indirip bellekte çökmeye neden olmadan birleştir
+    for (let i = 0; i < parts.length; i++) {
+        statusText.textContent = `Veriler işleniyor (Parça ${i + 1} / ${parts.length})...`;
+        const fileUrl = `./chunked_data/${parts[i]}`;
+        
+        await new Promise((resolve, reject) => {
+           Papa.parse(fileUrl, {
+              download: true, // Doğrudan URL'den asenkron stream çeker, bellek(RAM) patlamaz
+              header: true,
+              worker: false,
+              delimiter: ';',
+              skipEmptyLines: true,
+              chunk: function(results, parser) {
+                  // OOM (Out Of Memory) ve Watchdog (Kilitlenme) olayını önlemek için duraklatıyoruz
+                  parser.pause();
+                  
+                  allData.push(...results.data);
+                  parsedCount += results.data.length;
+                  
+                  // İlerlemeyi göster
+                  const estimate = Math.min(99, 10 + Math.floor((parsedCount / totalExpected) * 90));
+                  updateProgress('parse', estimate);
+                  
+                  // Garbage Collector (Çöp Toplayıcı) için 15ms mola (Telefonu rahatlatır)
+                  setTimeout(() => { parser.resume(); }, 15); 
+              },
+              complete: function() {
+                  resolve();
+              },
+              error: function(err) {
+                  reject(err);
+              }
+           });
+        });
+    }
+
+    // Tümü bitti!
+    updateProgress('parse', 100);
+    statusText.textContent = 'Harita hazırlandı!';
+    if (parseBar) parseBar.classList.remove('animate-pulse');
+    
+    filteredData = allData;
+    searchInput.disabled = false;
+    renderList();
+    
+    // Yükleme ekranını gizle (Sinematik Fade Out)
+    setTimeout(() => {
+       loading.classList.add('opacity-0');
+       setTimeout(() => { loading.classList.add('hidden'); }, 700);
+    }, 800);
 
 
   } catch (err) {
