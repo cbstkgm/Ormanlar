@@ -45,8 +45,8 @@ let allData = [];
 let filteredData = []; // Arama sonrası filtrelenmiş verileri tutar
 let currentViewMode = 'list'; // 'grid' veya 'list'
 let currentPage = 1;
-// Mobil cihazlar (genişlik < 640px) için 10, diğerleri için 100
-let itemsPerPage = window.innerWidth < 640 ? 10 : 100;
+// Tüm cihazlar için varsayılan kayıt listeleme limiti 10 olarak belirlendi.
+let itemsPerPage = 10;
 
 // View Toggles DOM Elements
 const viewTogglesContainer = document.getElementById('view-toggles');
