@@ -10,8 +10,8 @@
   <!-- Mobil Hata Yakalayıcı (Eruda) -->
   <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
   <script>eruda.init();</script>
-  <script type="module" crossorigin src="/Ormanlar/assets/index-DcGoC5-B.js"></script>
-  <link rel="stylesheet" crossorigin href="/Ormanlar/assets/index-CM5-01Vl.css">
+  <script type="module" crossorigin src="/Ormanlar/assets/index-CSr1mSBN.js"></script>
+  <link rel="stylesheet" crossorigin href="/Ormanlar/assets/index-C-VthEdc.css">
 </head>
 
 <body class="text-gray-800 font-sans antialiased m-0 p-0 overflow-hidden flex flex-col h-screen w-screen"
@@ -22,6 +22,15 @@
     <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
       <h1 class="text-xl font-semibold text-white hidden sm:block drop-shadow-sm">Mükerrer Orman Parselleri</h1>
       <div class="flex items-center space-x-3 sm:space-x-4 flex-1 justify-end ml-4">
+        <!-- İL SEÇİCİ HEADER -->
+        <div class="relative w-32 sm:w-48">
+           <select id="header-city-select" class="w-full bg-emerald-800/80 border border-emerald-500/50 text-white text-xs sm:text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block p-1.5 sm:p-2 outline-none cursor-pointer appearance-none pl-2 sm:pl-3 pr-6 sm:pr-8 shadow-sm">
+              <option value="" disabled selected>İl Seçiniz</option>
+           </select>
+           <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 sm:px-2 text-emerald-200">
+             <svg class="h-3 w-3 sm:h-4 sm:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+           </div>
+        </div>
         <div class="relative max-w-sm w-full">
           <input type="text" id="search-input" placeholder="Tüm kayıtlarda ara..."
             class="w-full pl-9 pr-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm text-white focus:bg-white/20 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/40 transition-colors placeholder-emerald-100/70"
@@ -61,7 +70,7 @@
   <main class="max-w-7xl mx-auto w-full flex-1 relative min-h-0 overflow-y-auto custom-scrollbar">
     <!-- YÜKLEME EKRANI (Sinematik Backdrop) -->
     <div id="loading"
-      class="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-md transition-opacity duration-700 rounded-3xl mx-4 my-2">
+      class="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-md transition-opacity duration-700 rounded-3xl mx-4 my-2 hidden">
       <div
         class="bg-emerald-900/95 text-white p-8 rounded-3xl shadow-2xl max-w-sm w-full border border-emerald-400/20 transform transition-all">
         <div class="flex flex-col items-center mb-6">
@@ -74,16 +83,8 @@
           <p class="text-sm text-emerald-200/80 mt-1" id="loading-status">Lütfen incelemek istediğiniz ili seçiniz.</p>
         </div>
 
-        <!-- İL SEÇİCİ -->
-        <div id="city-selector-container" class="mb-6 w-full">
-            <select id="city-select" class="w-full bg-emerald-800/80 border border-emerald-500/50 text-white text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block p-2.5 outline-none cursor-pointer">
-               <option value="" disabled selected>İl Seçiniz...</option>
-               <!-- JS ile doldurulacak -->
-            </select>
-            <button id="start-btn" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>Veriyi Getir</button>
-        </div>
-
-        <ul id="loading-steps" class="space-y-6 text-sm font-medium w-full mt-4 hidden">
+        <!-- İL SEÇİCİ KALDIRILDI -->
+        <ul id="loading-steps" class="space-y-6 text-sm font-medium w-full mt-4">
           <li id="step-download" class="flex flex-col text-gray-400 transition-colors duration-300 w-full">
             <div class="flex items-center justify-between w-full">
               <div class="flex items-center">
@@ -144,8 +145,17 @@
     </div>
 
     <!-- Kartların Ekleneceği Grid (Kaydırılabilir Alan) -->
-    <div id="list-container" class="flex-1 overflow-y-auto px-2 sm:px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden custom-scrollbar content-start">
+    <div id="list-container" class="flex-1 overflow-y-auto px-2 sm:px-4 pt-4 pb-4 flex flex-col custom-scrollbar content-start">
       <!-- Liste elemanları buraya JS ile dinamik eklenecek -->
+      <div class="flex items-center justify-center h-full min-h-[300px]">
+        <div class="text-center">
+          <svg class="mx-auto h-12 w-12 text-emerald-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+          </svg>
+          <h3 class="text-lg font-medium text-gray-900">İl Seçimi Bekleniyor</h3>
+          <p class="mt-1 text-sm text-gray-500">Kayıtları görüntülemek için lütfen üst menüden bir il seçiniz.</p>
+        </div>
+      </div>
     </div>
 
   </main>

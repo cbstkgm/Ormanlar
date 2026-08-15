@@ -681,7 +681,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const citySelect = document.getElementById('header-city-select');
   
   if (citySelect) {
-      iller.forEach(il => {
+      const siraliIller = iller.sort((a, b) => a.localeCompare(b, 'tr-TR'));
+      siraliIller.forEach(il => {
           const option = document.createElement('option');
           option.value = il;
           option.textContent = il;
