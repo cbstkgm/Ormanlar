@@ -321,9 +321,13 @@ function openMap(record) {
     // 1. Ana Parsel (Parsel A)
     if (record.parsel_a_geom) {
       const p1Style = { color: '#2563eb', weight: 2, fillColor: '#3b82f6', fillOpacity: 0.3 };
-      const content = `<strong>Orman A</strong><br/>
-                       Ada: ${record.parsel_a_adano} / Parsel: ${record.parsel_a_parselno}<br/>
-                       Alan: ${record.parsel_a_tapualan || ''} m²`;
+      const content = `<div class="space-y-1">
+                         <div class="text-[15px] font-bold text-blue-700 border-b pb-1 mb-2">Orman A Parseli</div>
+                         <div><strong>İl/İlçe:</strong> ${record.ilad} / ${record.ilcead}</div>
+                         <div><strong>Mahalle:</strong> ${record.mahallead}</div>
+                         <div><strong>Ada/Parsel:</strong> ${record.parsel_a_adano} / ${record.parsel_a_parselno}</div>
+                         <div><strong>Tapu Alanı:</strong> ${record.parsel_a_tapualan || '-'} m²</div>
+                       </div>`;
       const layerA = createLayerFromWKT(record.parsel_a_geom, p1Style, content);
       if (layerA) {
         activeMapLayers.a = layerA;
@@ -336,9 +340,13 @@ function openMap(record) {
     // 2. Mükerrer / Kesişen Parsel (Parsel B) - Yeşil/Emerald
     if (record.parsel_b_geom) {
       const p2Style = { color: '#059669', weight: 2, fillColor: '#10b981', fillOpacity: 0.3 };
-      const content = `<strong>Orman B</strong><br/>
-                       Ada: ${record.parsel_b_adano} / Parsel: ${record.parsel_b_parselno}<br/>
-                       Alan: ${record.parsel_b_tapualan || ''} m²`;
+      const content = `<div class="space-y-1">
+                         <div class="text-[15px] font-bold text-emerald-700 border-b pb-1 mb-2">Orman B Parseli</div>
+                         <div><strong>İl/İlçe:</strong> ${record.ilad} / ${record.ilcead}</div>
+                         <div><strong>Mahalle:</strong> ${record.mahallead}</div>
+                         <div><strong>Ada/Parsel:</strong> ${record.parsel_b_adano} / ${record.parsel_b_parselno}</div>
+                         <div><strong>Tapu Alanı:</strong> ${record.parsel_b_tapualan || '-'} m²</div>
+                       </div>`;
       const layerB = createLayerFromWKT(record.parsel_b_geom, p2Style, content);
       if (layerB) {
         activeMapLayers.b = layerB;
@@ -351,8 +359,12 @@ function openMap(record) {
     // 3. Kesişim Alanı - Kırmızı/Red
     if (record.kesisim_geom) {
       const intersectionStyle = { color: '#dc2626', weight: 2, fillColor: 'url(#stripe-pattern)', fillOpacity: 1 };
-      const content = `<strong>Kesişim Alanı</strong><br/>
-                       Kesişim: ${record.kesisim_alani_m2 || '?'} m²`;
+      const content = `<div class="space-y-1">
+                         <div class="text-[15px] font-bold text-red-700 border-b pb-1 mb-2">Kesişim Alanı</div>
+                         <div><strong>İl/İlçe:</strong> ${record.ilad} / ${record.ilcead}</div>
+                         <div><strong>Mahalle:</strong> ${record.mahallead}</div>
+                         <div><strong>Kesişim Miktarı:</strong> ${record.kesisim_alani_m2 || '?'} m²</div>
+                       </div>`;
       const layerInt = createLayerFromWKT(record.kesisim_geom, intersectionStyle, content);
       if (layerInt) {
         activeMapLayers.int = layerInt;
