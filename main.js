@@ -45,7 +45,7 @@ let allData = [];
 let filteredData = []; // Arama sonrası filtrelenmiş verileri tutar
 let currentViewMode = 'list'; // 'grid' veya 'list'
 let currentPage = 1;
-let itemsPerPage = 100;
+let itemsPerPage = 25;
 
 // View Toggles DOM Elements
 const viewTogglesContainer = document.getElementById('view-toggles');
