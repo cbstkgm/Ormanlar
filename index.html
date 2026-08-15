@@ -54,7 +54,7 @@
   </header>
 
   <!-- Ana Liste Container -->
-  <main class="max-w-7xl mx-auto w-full flex-1 relative min-h-0 overflow-hidden">
+  <main class="max-w-7xl mx-auto w-full flex-1 flex flex-col relative min-h-0 overflow-hidden">
     <!-- YÜKLEME EKRANI (Sinematik Backdrop) -->
     <div id="loading"
       class="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-md transition-opacity duration-700 rounded-3xl mx-4 my-2">
@@ -131,17 +131,20 @@
     </div>
 
     <!-- Kartların Ekleneceği Grid (Kaydırılabilir Alan) -->
-    <div id="list-container" class="absolute inset-0 px-4 pt-4 pb-32 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden overflow-y-auto custom-scrollbar content-start">
+    <div id="list-container" class="flex-1 overflow-y-auto px-2 sm:px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden custom-scrollbar content-start">
       <!-- Liste elemanları buraya JS ile dinamik eklenecek -->
     </div>
 
-    <!-- Paginator (Sabit Alt Kısım) -->
+    <!-- Paginator (Sabit Alt Kısım - Tam Genişlik Footer) -->
     <div id="pagination-container"
-      class="hidden absolute bottom-4 left-4 right-4 bg-white/80 backdrop-blur-lg p-4 rounded-xl shadow-[0_-10px_30px_-10px_rgba(0,0,0,0.3)] border border-white/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-700 z-10">
-      <div class="flex items-center gap-2">
-        <label for="items-per-page">Sayfa başına kayıt:</label>
+      class="hidden flex-none w-full bg-white/90 backdrop-blur-lg border-t border-emerald-100/50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] px-2 sm:px-4 py-2 z-10 flex flex-row items-center justify-between text-xs sm:text-sm text-gray-700">
+      
+      <!-- 1: Sayfa Başına Kayıt -->
+      <div class="flex items-center gap-1 sm:gap-2">
+        <label for="items-per-page" class="hidden sm:inline">Sayfa başına:</label>
+        <label for="items-per-page" class="sm:hidden font-medium">Kayıt:</label>
         <select id="items-per-page"
-          class="border border-gray-300 rounded p-1 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+          class="border border-gray-300 rounded p-1 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 text-xs sm:text-sm">
           <option value="10" selected>10</option>
           <option value="25">25</option>
           <option value="50">50</option>
@@ -149,24 +152,25 @@
         </select>
       </div>
 
-      <!-- Ziyaretçi Sayacı -->
+      <!-- 2: Ziyaretçi Sayacı -->
       <div
-        class="flex items-center text-emerald-700 font-semibold text-xs sm:text-sm bg-emerald-50/90 px-3 py-1.5 rounded-lg border border-emerald-100 shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-1.5" viewBox="0 0 20 20"
+        class="flex items-center text-emerald-700 font-semibold bg-emerald-50/90 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-emerald-100 shadow-sm mx-1 sm:mx-2 whitespace-nowrap">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-1.5" viewBox="0 0 20 20"
           fill="currentColor">
           <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
         </svg>
-        Ziyaretçi: <span id="visitor-count" class="ml-1 tracking-wide font-bold">...</span>
+        <span class="hidden sm:inline">Ziyaretçi: </span><span id="visitor-count" class="tracking-wide font-bold">...</span>
       </div>
 
-      <div class="flex items-center gap-4">
-        <span id="page-info" class="min-w-[100px] text-center">1 - 10 of 100</span>
+      <!-- 3: Sayfa Bilgisi ve Yönlendirme -->
+      <div class="flex items-center gap-1 sm:gap-4 whitespace-nowrap">
+        <span id="page-info" class="text-center min-w-[60px] sm:min-w-[100px]">1-10/100</span>
 
-        <div class="flex gap-1">
+        <div class="flex gap-0.5 sm:gap-1">
           <button id="prev-page-btn"
             class="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none"
             disabled>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd"
                 d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
                 clip-rule="evenodd" />
@@ -174,7 +178,7 @@
           </button>
           <button id="next-page-btn"
             class="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd"
                 d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
                 clip-rule="evenodd" />
