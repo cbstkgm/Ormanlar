@@ -1,39 +1,55 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mükerrer Orman Parselleri</title>
   <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-  <script type="module" crossorigin src="/Ormanlar/assets/index-CPvjZhSF.js"></script>
-  <link rel="stylesheet" crossorigin href="/Ormanlar/assets/index-CN6IFA0g.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <!-- Mobil Hata Yakalayıcı (Eruda) -->
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>eruda.init();</script>
+  <script type="module" crossorigin src="/Ormanlar/assets/index-DcGoC5-B.js"></script>
+  <link rel="stylesheet" crossorigin href="/Ormanlar/assets/index-CM5-01Vl.css">
 </head>
-<body class="text-gray-800 font-sans antialiased m-0 p-0 overflow-x-hidden" style="background-image: url('bg.jpg'); background-size: cover; background-position: center; background-attachment: fixed;">
-  
+
+<body class="text-gray-800 font-sans antialiased m-0 p-0 overflow-hidden flex flex-col h-screen w-screen"
+  style="background-image: url('bg.jpg'); background-size: cover; background-position: center; background-attachment: fixed;">
+
   <!-- Header -->
-  <header class="bg-emerald-900/60 backdrop-blur-md shadow-md sticky top-0 z-10 border-b border-emerald-400/20">
+  <header class="bg-emerald-900/60 backdrop-blur-md shadow-md z-10 border-b border-emerald-400/20 flex-shrink-0">
     <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-      <h1 class="text-xl font-semibold text-white hidden sm:block drop-shadow-sm">Mükerrer Parseller</h1>
+      <h1 class="text-xl font-semibold text-white hidden sm:block drop-shadow-sm">Mükerrer Orman Parselleri</h1>
       <div class="flex items-center space-x-3 sm:space-x-4 flex-1 justify-end ml-4">
         <div class="relative max-w-sm w-full">
-          <input type="text" id="search-input" placeholder="Tüm kayıtlarda ara..." class="w-full pl-9 pr-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm text-white focus:bg-white/20 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/40 transition-colors placeholder-emerald-100/70" disabled>
+          <input type="text" id="search-input" placeholder="Tüm kayıtlarda ara..."
+            class="w-full pl-9 pr-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm text-white focus:bg-white/20 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/40 transition-colors placeholder-emerald-100/70"
+            disabled>
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg class="h-4 w-4 text-emerald-100/70" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+              <path fill-rule="evenodd"
+                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                clip-rule="evenodd" />
             </svg>
           </div>
         </div>
         <div class="text-sm text-emerald-50 whitespace-nowrap hidden md:block" id="record-count">Yükleniyor...</div>
         <div class="flex bg-black/20 p-1 rounded-lg hidden flex-shrink-0 border border-white/10" id="view-toggles">
-          <button id="view-grid-btn" class="p-1.5 rounded-md bg-white/20 shadow-sm text-white focus:outline-none" title="Kart Görünümü">
+          <button id="view-grid-btn" class="p-1.5 rounded-md bg-white/20 shadow-sm text-white focus:outline-none"
+            title="Kart Görünümü">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              <path
+                d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
           </button>
-          <button id="view-list-btn" class="p-1.5 rounded-md text-emerald-100/70 hover:text-white hover:bg-white/10 focus:outline-none transition-colors" title="Liste Görünümü">
+          <button id="view-list-btn"
+            class="p-1.5 rounded-md text-emerald-100/70 hover:text-white hover:bg-white/10 focus:outline-none transition-colors"
+            title="Liste Görünümü">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+              <path fill-rule="evenodd"
+                d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                clip-rule="evenodd" />
             </svg>
           </button>
         </div>
@@ -42,99 +58,226 @@
   </header>
 
   <!-- Ana Liste Container -->
-  <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-    <div id="loading" class="text-center py-10">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-      <p class="mt-2 text-gray-500">Veriler yükleniyor...</p>
-    </div>
-    
-    <!-- Kartların Ekleneceği Grid -->
-    <div id="list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
-      <!-- Liste elemanları buraya JS ile dinamik eklenecek -->
-    </div>
+  <main class="max-w-7xl mx-auto w-full flex-1 relative min-h-0 overflow-y-auto custom-scrollbar">
+    <!-- YÜKLEME EKRANI (Sinematik Backdrop) -->
+    <div id="loading"
+      class="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-md transition-opacity duration-700 rounded-3xl mx-4 my-2">
+      <div
+        class="bg-emerald-900/95 text-white p-8 rounded-3xl shadow-2xl max-w-sm w-full border border-emerald-400/20 transform transition-all">
+        <div class="flex flex-col items-center mb-6">
+          <div class="relative w-16 h-16 mb-5 hidden" id="loading-spinner">
+            <div class="absolute inset-0 rounded-full border-t-4 border-emerald-300 animate-spin"></div>
+            <div class="absolute inset-2 rounded-full border-b-4 border-emerald-500 animate-spin"
+              style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+          </div>
+          <h2 class="text-xl font-bold tracking-wide">TKGM - CBS Veritabanı</h2>
+          <p class="text-sm text-emerald-200/80 mt-1" id="loading-status">Lütfen incelemek istediğiniz ili seçiniz.</p>
+        </div>
 
-    <!-- Paginator -->
-    <div id="pagination-container" class="hidden mt-8 bg-white/90 p-4 rounded-xl shadow-sm border border-white/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-700">
-      <div class="flex items-center gap-2">
-        <label for="items-per-page">Sayfa başına kayıt:</label>
-        <select id="items-per-page" class="border border-gray-300 rounded p-1 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
-          <option value="10" selected>10</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-        </select>
-      </div>
-      
-      <!-- Ziyaretçi Sayacı -->
-      <div class="flex items-center text-emerald-700 font-semibold text-xs sm:text-sm bg-emerald-50/90 px-3 py-1.5 rounded-lg border border-emerald-100 shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-        </svg>
-        Ziyaretçi: <span id="visitor-count" class="ml-1 tracking-wide">8,421</span>
-      </div>
-      
-      <div class="flex items-center gap-4">
-        <span id="page-info" class="min-w-[100px] text-center">1 - 10 of 100</span>
-        
-        <div class="flex gap-1">
-          <button id="prev-page-btn" class="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none" disabled>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-          </button>
-          <button id="next-page-btn" class="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-            </svg>
-          </button>
+        <!-- İL SEÇİCİ -->
+        <div id="city-selector-container" class="mb-6 w-full">
+            <select id="city-select" class="w-full bg-emerald-800/80 border border-emerald-500/50 text-white text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block p-2.5 outline-none cursor-pointer">
+               <option value="" disabled selected>İl Seçiniz...</option>
+               <!-- JS ile doldurulacak -->
+            </select>
+            <button id="start-btn" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>Veriyi Getir</button>
+        </div>
+
+        <ul id="loading-steps" class="space-y-6 text-sm font-medium w-full mt-4 hidden">
+          <li id="step-download" class="flex flex-col text-gray-400 transition-colors duration-300 w-full">
+            <div class="flex items-center justify-between w-full">
+              <div class="flex items-center">
+                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>1. İndirme (Cache)</span>
+              </div>
+              <span id="prog-txt-download" class="text-xs font-bold opacity-0 transition-opacity">0%</span>
+            </div>
+            <div class="w-full bg-emerald-950 rounded-full h-1.5 mt-2 overflow-hidden">
+              <div id="prog-bar-download"
+                class="bg-gradient-to-r from-emerald-500 to-emerald-300 h-1.5 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(52,211,153,0.5)]"
+                style="width: 0%"></div>
+            </div>
+          </li>
+          <li id="step-unzip" class="flex flex-col text-gray-400 transition-colors duration-300 w-full">
+            <div class="flex items-center justify-between w-full">
+              <div class="flex items-center">
+                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                </svg>
+                <span>2. Çıkartma (Bellek)</span>
+              </div>
+              <span id="prog-txt-unzip" class="text-xs font-bold opacity-0 transition-opacity">0%</span>
+            </div>
+            <div class="w-full bg-emerald-950 rounded-full h-1.5 mt-2 overflow-hidden">
+              <div id="prog-bar-unzip"
+                class="bg-gradient-to-r from-emerald-500 to-emerald-300 h-1.5 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(52,211,153,0.5)]"
+                style="width: 0%"></div>
+            </div>
+          </li>
+          <li id="step-parse" class="flex flex-col text-gray-400 transition-colors duration-300 w-full">
+            <div class="flex items-center justify-between w-full">
+              <div class="flex items-center">
+                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span>3. Haritaya Aktarım</span>
+              </div>
+            </div>
+            <div class="w-full bg-emerald-950 rounded-full h-1.5 mt-2 overflow-hidden">
+              <div id="prog-bar-parse"
+                class="bg-gradient-to-r from-emerald-500 to-emerald-300 h-1.5 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(52,211,153,0.5)] w-full opacity-0">
+              </div>
+            </div>
+          </li>
+        </ul>
+
+        <div class="mt-8 p-3 bg-emerald-950/50 rounded-lg border border-emerald-500/20 text-center w-full">
+          <span class="text-[11px] text-emerald-300/70 font-mono tracking-wider block">KAYIT KONUMU</span>
+          <span class="text-xs text-white mt-1 block">Internet tarayıcınızın önbelleğine indiriliyor... </span>
         </div>
       </div>
     </div>
+
+    <!-- Kartların Ekleneceği Grid (Kaydırılabilir Alan) -->
+    <div id="list-container" class="flex-1 overflow-y-auto px-2 sm:px-4 pt-4 pb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden custom-scrollbar content-start">
+      <!-- Liste elemanları buraya JS ile dinamik eklenecek -->
+    </div>
+
   </main>
 
+  <!-- Paginator (Sabit Alt Kısım - Tam Genişlik Footer) -->
+  <div id="pagination-container"
+    class="hidden flex-none w-full bg-white border-t border-emerald-200 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] z-20">
+    <div class="max-w-7xl mx-auto px-1 sm:px-4 py-1.5 flex flex-row items-center justify-between text-xs sm:text-sm text-gray-700">
+      
+      <!-- SOL TARAF: Ziyaretçi Sayacı -->
+      <div
+        class="flex items-center text-emerald-800 font-semibold bg-emerald-100/80 px-1.5 sm:px-3 py-0.5 sm:py-1 rounded border border-emerald-200 shadow-sm whitespace-nowrap">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4 mr-0.5 sm:mr-1.5" viewBox="0 0 20 20"
+          fill="currentColor">
+          <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+        </svg>
+        <span class="hidden sm:inline">Ziyaretçi: </span><span id="visitor-count" class="tracking-wide font-bold text-[11px] sm:text-sm">...</span>
+      </div>
+
+      <!-- SAĞ TARAF: Kayıt Seçimi ve Yönlendirme -->
+      <div class="flex items-center gap-3 sm:gap-6">
+        
+        <!-- Sayfa Başına Kayıt -->
+        <div class="flex items-center gap-1">
+          <label for="items-per-page" class="hidden sm:inline">Sayfa başına:</label>
+          <label for="items-per-page" class="sm:hidden font-medium text-[10px]">Kayıt:</label>
+          <select id="items-per-page"
+            class="border border-gray-300 rounded p-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 text-[11px] sm:text-sm">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="250">250</option>
+            <option value="500">500</option>
+            <option value="1000">1000</option>
+          </select>
+        </div>
+
+        <!-- Sayfa Bilgisi ve Yönlendirme -->
+        <div class="flex items-center gap-1 sm:gap-3 whitespace-nowrap">
+          <span id="page-info" class="text-center min-w-[50px] sm:min-w-[100px] text-[11px] sm:text-sm font-medium">1-10/100</span>
+
+          <div class="flex gap-0.5">
+            <button id="prev-page-btn"
+              class="p-0.5 sm:p-1 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none"
+              disabled>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
+                  d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                  clip-rule="evenodd" />
+              </svg>
+            </button>
+            <button id="next-page-btn"
+              class="p-0.5 sm:p-1 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
   <!-- Harita Modal/Overlay (Tam Ekran) -->
-  <div id="map-overlay" class="fixed inset-0 z-50 bg-white transform translate-y-full transition-transform duration-300 ease-in-out flex flex-col">
+  <div id="map-overlay"
+    class="fixed inset-0 z-50 bg-white transform translate-y-full transition-transform duration-300 ease-in-out flex flex-col">
     <!-- Header -->
-    <div class="bg-emerald-900/80 backdrop-blur-md border-b border-emerald-400/20 px-4 py-3 flex justify-between items-center shadow-sm z-[1000] relative">
+    <div
+      class="bg-emerald-900/80 backdrop-blur-md border-b border-emerald-400/20 px-4 py-3 flex justify-between items-center shadow-sm z-[1000] relative">
       <h2 class="text-lg font-medium text-white drop-shadow-sm truncate pr-4" id="map-title">Parsel Detayı</h2>
-      <button id="close-map-btn" class="p-2 rounded-full hover:bg-white/10 transition-colors flex-shrink-0 text-emerald-100 hover:text-white focus:outline-none">
+      <button id="close-map-btn"
+        class="p-2 rounded-full hover:bg-white/10 transition-colors flex-shrink-0 text-emerald-100 hover:text-white focus:outline-none">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
     </div>
-    
+
     <!-- Map Container -->
     <div id="map" class="flex-1 w-full bg-gray-100 z-0"></div>
-    
+
     <!-- Legend / Layer Control (Harita Açıldığında Leaflet içine taşınacak) -->
-    <div id="custom-legend-control" class="leaflet-control leaflet-bar hidden bg-emerald-900/70 backdrop-blur-md border-emerald-400/30 text-white relative" style="border-radius: 0.5rem; margin-top: 10px;">
+    <div id="custom-legend-control"
+      class="leaflet-control leaflet-bar hidden bg-emerald-900/70 backdrop-blur-md border-emerald-400/30 text-white relative"
+      style="border-radius: 0.5rem; margin-top: 10px;">
       <!-- Toggle Button (Kare İkon) -->
-      <a href="#" id="legend-toggle-btn" title="Lejantı Göster" class="transition-colors focus:outline-none" style="width: 44px !important; height: 44px !important; border: none !important; display: flex !important; justify-content: center !important; align-items: center !important;">
-        <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px !important; height: 20px !important;" class="text-white" fill="currentColor" viewBox="0 0 16 16">
-          <path fill-rule="evenodd" d="M2 2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5H2zM3 3H2v1h1V3z"/>
-          <path d="M5 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM5.5 7a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1h-9zm0 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1h-9z"/>
-          <path fill-rule="evenodd" d="M1.5 7a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H2a.5.5 0 0 1-.5-.5V7zM2 7h1v1H2V7zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5H2zm1 .5H2v1h1v-1z"/>
+      <a href="#" id="legend-toggle-btn" title="Lejantı Göster" class="transition-colors focus:outline-none"
+        style="width: 44px !important; height: 44px !important; border: none !important; display: flex !important; justify-content: center !important; align-items: center !important;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px !important; height: 20px !important;"
+          class="text-white" fill="currentColor" viewBox="0 0 16 16">
+          <path fill-rule="evenodd"
+            d="M2 2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5H2zM3 3H2v1h1V3z" />
+          <path
+            d="M5 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM5.5 7a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1h-9zm0 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1h-9z" />
+          <path fill-rule="evenodd"
+            d="M1.5 7a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H2a.5.5 0 0 1-.5-.5V7zM2 7h1v1H2V7zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5H2zm1 .5H2v1h1v-1z" />
         </svg>
       </a>
-      
+
       <!-- Legend Content (Sola Doğru Açılan Panel) -->
-      <div id="legend-content" class="hidden absolute top-0 right-[calc(100%+10px)] w-max bg-emerald-900/90 backdrop-blur-md rounded-lg shadow-lg border border-emerald-400/30 p-2 sm:p-3 flex flex-col gap-1 sm:gap-1.5 transition-all">
-        <label class="flex items-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors text-xs sm:text-sm">
-          <input type="checkbox" id="toggle-layer-a" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500 rounded border-white/30 focus:ring-blue-500 mr-2" checked>
-          <span class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-blue-500 rounded mr-2 opacity-80 border border-blue-400 flex-shrink-0"></span> 
+      <div id="legend-content"
+        class="hidden absolute top-0 right-[calc(100%+10px)] w-max bg-emerald-900/90 backdrop-blur-md rounded-lg shadow-lg border border-emerald-400/30 p-2 sm:p-3 flex flex-col gap-1 sm:gap-1.5 transition-all">
+        <label
+          class="flex items-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors text-xs sm:text-sm">
+          <input type="checkbox" id="toggle-layer-a"
+            class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500 rounded border-white/30 focus:ring-blue-500 mr-2" checked>
+          <span
+            class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-blue-500 rounded mr-2 opacity-80 border border-blue-400 flex-shrink-0"></span>
           <span class="font-medium text-emerald-50 select-none">Orman A</span>
         </label>
-        
-        <label class="flex items-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors text-xs sm:text-sm">
-          <input type="checkbox" id="toggle-layer-b" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 rounded border-white/30 focus:ring-emerald-500 mr-2" checked>
-          <span class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-emerald-500 rounded mr-2 opacity-80 border border-emerald-400 flex-shrink-0"></span> 
+
+        <label
+          class="flex items-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors text-xs sm:text-sm">
+          <input type="checkbox" id="toggle-layer-b"
+            class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 rounded border-white/30 focus:ring-emerald-500 mr-2"
+            checked>
+          <span
+            class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-emerald-500 rounded mr-2 opacity-80 border border-emerald-400 flex-shrink-0"></span>
           <span class="font-medium text-emerald-50 select-none">Orman B (Eşleşen)</span>
         </label>
-        
-        <label class="flex items-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors text-xs sm:text-sm">
-          <input type="checkbox" id="toggle-layer-int" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500 rounded border-white/30 focus:ring-red-500 mr-2" checked>
-          <span class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-red-500 rounded mr-2 opacity-80 border border-red-400 striped-bg flex-shrink-0"></span> 
+
+        <label
+          class="flex items-center cursor-pointer hover:bg-white/10 p-1 rounded transition-colors text-xs sm:text-sm">
+          <input type="checkbox" id="toggle-layer-int"
+            class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500 rounded border-white/30 focus:ring-red-500 mr-2" checked>
+          <span
+            class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-red-500 rounded mr-2 opacity-80 border border-red-400 striped-bg flex-shrink-0"></span>
           <span class="font-medium text-emerald-50 select-none">Kesişim Alanı</span>
         </label>
       </div>
@@ -142,4 +285,5 @@
   </div>
 
 </body>
+
 </html>

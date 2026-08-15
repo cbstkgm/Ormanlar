@@ -564,74 +564,63 @@ function updateProgress(stepId, percent) {
   }
 }
 
-// CSV Verisini Parçalı (Chunked) Olarak Fetch Etme
-async function loadData() {
+// CSV Verisini Seçilen İle Göre Fetch Etme
+async function loadData(ilAdi) {
   try {
     recordCount.textContent = 'Veri hazırlanıyor...';
     const statusText = document.getElementById('loading-status');
     const parseBar = document.getElementById('prog-bar-parse');
+    const loadingSteps = document.getElementById('loading-steps');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    
+    // UI Ayarları
+    document.getElementById('city-selector-container').classList.add('hidden');
+    loadingSteps.classList.remove('hidden');
+    loadingSpinner.classList.remove('hidden');
     
     // Yükleme arayüzü reset
     updateProgress('download', 0);
     updateProgress('unzip', 0);
     updateProgress('parse', 0);
 
-    const chunkUrls = [
-      'chunked_data/part_aa.csv',
-      'chunked_data/part_ab.csv',
-      'chunked_data/part_ac.csv',
-      'chunked_data/part_ad.csv',
-      'chunked_data/part_ae.csv',
-      'chunked_data/part_af.csv'
-    ];
-
     allData = [];
     let parsedCount = 0;
     
-    // Parçaların her birinde yaklaşık eşit veri olduğunu varsayarak ilerleme çubuğu hesaplayacağız
-    const totalParts = chunkUrls.length;
-    
     setStepActive('step-download');
+    statusText.textContent = `${ilAdi} verisi indiriliyor ve işleniyor...`;
 
-    for (let i = 0; i < totalParts; i++) {
-       const url = new URL(chunkUrls[i], window.location.href).href;
-       statusText.textContent = `Veri parçası indiriliyor ve işleniyor (${i+1}/${totalParts})...`;
+    const url = new URL(`iller/${ilAdi}.csv`, window.location.href).href;
+
+    await new Promise((resolve, reject) => {
+      Papa.parse(url, {
+        download: true,
+        header: true,
+        worker: false, // Mobil kilitlenmeleri önlemek için false
+        delimiter: ';',
+        skipEmptyLines: true,
+        chunk: function (results, parser) {
+          parser.pause();
+          allData.push(...results.data);
+          parsedCount += results.data.length;
+          
+          // Ortalama bir dosya büyüklüğüne göre temsili yüzde
+          let progress = Math.min(99, (parsedCount / 50000) * 100);
+          updateProgress('download', progress);
+          updateProgress('parse', progress);
+          
+          setTimeout(() => { parser.resume(); }, 20); // Garbage Collector nefes alsın
+        },
+        complete: function() {
+          resolve();
+        },
+        error: function(err) {
+          reject(err);
+        }
+      });
+    });
        
-       const baseProgress = (i / totalParts) * 100;
-       // Arayüzü temsili güncelle (Download kısmı)
-       updateProgress('download', baseProgress + (100 / totalParts) * 0.5); 
-       
-       // Papa Parse ile asenkron Stream
-       await new Promise((resolve, reject) => {
-         Papa.parse(url, {
-           download: true,
-           header: true,
-           worker: false, // Mobil kilitlenmeleri önlemek için false
-           delimiter: ';',
-           skipEmptyLines: true,
-           chunk: function (results, parser) {
-             parser.pause();
-             allData.push(...results.data);
-             parsedCount += results.data.length;
-             
-             // İç ilerleme göstergesi
-             const innerProgress = baseProgress + ((100 / totalParts) * 0.9);
-             updateProgress('parse', innerProgress);
-             
-             setTimeout(() => { parser.resume(); }, 20); // Garbage Collector nefes alsın
-           },
-           complete: function() {
-             resolve();
-           },
-           error: function(err) {
-             reject(err);
-           }
-         });
-       });
-       
-       updateProgress('download', baseProgress + (100 / totalParts));
-       updateProgress('parse', baseProgress + (100 / totalParts));
-    }
+    updateProgress('download', 100);
+    updateProgress('parse', 100);
     
     // 2. Adım (Çıkartma) pas geçildiği için görsel olarak %100 yapıyoruz
     setStepActive('step-unzip');
@@ -676,14 +665,43 @@ async function loadData() {
   }
 }
 
+// İl Listesi
+const iller = ["ADANA","ADIYAMAN","AFYONKARAHİSAR","AKSARAY","AMASYA","ANKARA","ANTALYA","ARDAHAN","ARTVİN","AYDIN","AĞRI","BALIKESİR","BARTIN","BATMAN","BAYBURT","BOLU","BURDUR","BURSA","BİLECİK","BİNGÖL","BİTLİS","DENİZLİ","DÜZCE","DİYARBAKIR","EDİRNE","ELAZIĞ","ERZURUM","ERZİNCAN","ESKİŞEHİR","GAZİANTEP","GÜMÜŞHANE","GİRESUN","HAKKARİ","HATAY","ISPARTA","KAHRAMANMARAŞ","KARABÜK","KARAMAN","KARS","KASTAMONU","KAYSERİ","KIRIKKALE","KIRKLARELİ","KIRŞEHİR","KOCAELİ","KONYA","KÜTAHYA","KİLİS","MALATYA","MANİSA","MARDİN","MERSİN","MUĞLA","MUŞ","NEVŞEHİR","NİĞDE","ORDU","OSMANİYE","RİZE","SAKARYA","SAMSUN","SİNOP","SİVAS","SİİRT","TEKİRDAĞ","TOKAT","TRABZON","TUNCELİ","UŞAK","VAN","YALOVA","YOZGAT","ZONGULDAK","ÇANAKKALE","ÇANKIRI","ÇORUM","İSTANBUL","İZMİR","ŞIRNAK"];
+
 // Uygulama Başlatma
 document.addEventListener('DOMContentLoaded', () => {
-  // Ekran genişliğine göre atanan varsayılan değeri Select kutusuna yansıt
   if (itemsPerPageSelect) {
     itemsPerPageSelect.value = itemsPerPage.toString();
   }
   
   updateViewToggleUI();
-  loadData();
   updateVisitorCount();
+  
+  // İl seçiciyi doldur
+  const citySelect = document.getElementById('city-select');
+  const startBtn = document.getElementById('start-btn');
+  
+  if (citySelect && startBtn) {
+      iller.forEach(il => {
+          const option = document.createElement('option');
+          option.value = il;
+          option.textContent = il;
+          citySelect.appendChild(option);
+      });
+      
+      citySelect.addEventListener('change', () => {
+          if (citySelect.value) {
+              startBtn.disabled = false;
+          }
+      });
+      
+      startBtn.addEventListener('click', () => {
+          const seciliIl = citySelect.value;
+          if (seciliIl) {
+              startBtn.disabled = true;
+              startBtn.textContent = 'Yükleniyor...';
+              loadData(seciliIl);
+          }
+      });
+  }
 });

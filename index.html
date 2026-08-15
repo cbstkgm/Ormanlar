@@ -63,17 +63,26 @@
       class="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-md transition-opacity duration-700 rounded-3xl mx-4 my-2">
       <div
         class="bg-emerald-900/95 text-white p-8 rounded-3xl shadow-2xl max-w-sm w-full border border-emerald-400/20 transform transition-all">
-        <div class="flex flex-col items-center mb-8">
-          <div class="relative w-16 h-16 mb-5">
+        <div class="flex flex-col items-center mb-6">
+          <div class="relative w-16 h-16 mb-5 hidden" id="loading-spinner">
             <div class="absolute inset-0 rounded-full border-t-4 border-emerald-300 animate-spin"></div>
             <div class="absolute inset-2 rounded-full border-b-4 border-emerald-500 animate-spin"
               style="animation-direction: reverse; animation-duration: 1.5s;"></div>
           </div>
           <h2 class="text-xl font-bold tracking-wide">TKGM - CBS Veritabanı</h2>
-          <p class="text-sm text-emerald-200/80 mt-1" id="loading-status">Hazırlanıyor...</p>
+          <p class="text-sm text-emerald-200/80 mt-1" id="loading-status">Lütfen incelemek istediğiniz ili seçiniz.</p>
         </div>
 
-        <ul class="space-y-6 text-sm font-medium w-full mt-4">
+        <!-- İL SEÇİCİ -->
+        <div id="city-selector-container" class="mb-6 w-full">
+            <select id="city-select" class="w-full bg-emerald-800/80 border border-emerald-500/50 text-white text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block p-2.5 outline-none cursor-pointer">
+               <option value="" disabled selected>İl Seçiniz...</option>
+               <!-- JS ile doldurulacak -->
+            </select>
+            <button id="start-btn" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>Veriyi Getir</button>
+        </div>
+
+        <ul id="loading-steps" class="space-y-6 text-sm font-medium w-full mt-4 hidden">
           <li id="step-download" class="flex flex-col text-gray-400 transition-colors duration-300 w-full">
             <div class="flex items-center justify-between w-full">
               <div class="flex items-center">
