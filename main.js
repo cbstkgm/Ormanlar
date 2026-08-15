@@ -643,10 +643,9 @@ async function loadData() {
     
     // UI'ın (İlerleme çubuklarının) ekrana çizilmesini garanti altına almak için kısa bir bekleme
     setTimeout(() => {
-      // 3. PapaParse ile BLOB'u parse et (String olmadığı için TypeError vermez)
       Papa.parse(csvBlob, {
         header: true,
-        worker: true, // UI'nin donmasını/çökmesini engellemek için arka planda çalıştır
+        worker: false, // Worker kullanımı Github Pages'te yol sorununa/donmaya yol açtığı için iptal edildi.
         delimiter: ';',
         skipEmptyLines: true,
         complete: function (results) {
