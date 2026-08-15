@@ -10,11 +10,11 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 </head>
 
-<body class="text-gray-800 font-sans antialiased m-0 p-0 overflow-x-hidden flex flex-col h-screen"
+<body class="text-gray-800 font-sans antialiased m-0 p-0 overflow-hidden flex flex-col h-screen w-screen"
   style="background-image: url('bg.jpg'); background-size: cover; background-position: center; background-attachment: fixed;">
 
   <!-- Header -->
-  <header class="bg-emerald-900/60 backdrop-blur-md shadow-md sticky top-0 z-10 border-b border-emerald-400/20">
+  <header class="bg-emerald-900/60 backdrop-blur-md shadow-md z-10 border-b border-emerald-400/20 flex-shrink-0">
     <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
       <h1 class="text-xl font-semibold text-white hidden sm:block drop-shadow-sm">Mükerrer Orman Parselleri</h1>
       <div class="flex items-center space-x-3 sm:space-x-4 flex-1 justify-end ml-4">
@@ -54,7 +54,7 @@
   </header>
 
   <!-- Ana Liste Container -->
-  <main class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex-1 flex flex-col overflow-hidden w-full relative">
+  <main class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex-1 flex flex-col overflow-hidden w-full relative min-h-0">
     <!-- YÜKLEME EKRANI (Sinematik Backdrop) -->
     <div id="loading"
       class="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-md transition-opacity duration-700 rounded-3xl mx-4 my-2">
@@ -131,13 +131,13 @@
     </div>
 
     <!-- Kartların Ekleneceği Grid (Kaydırılabilir Alan) -->
-    <div id="list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden flex-1 overflow-y-auto pr-2 pb-4 pt-2 custom-scrollbar">
+    <div id="list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden flex-1 overflow-y-auto pr-2 pb-4 pt-2 custom-scrollbar min-h-0 content-start">
       <!-- Liste elemanları buraya JS ile dinamik eklenecek -->
     </div>
 
     <!-- Paginator (Sabit Alt Kısım) -->
     <div id="pagination-container"
-      class="hidden mt-auto bg-white/90 p-4 rounded-xl shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.15)] border border-white/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-700 flex-shrink-0 z-10">
+      class="hidden mt-4 bg-white/90 p-4 rounded-xl shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.15)] border border-white/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-700 flex-shrink-0 z-10">
       <div class="flex items-center gap-2">
         <label for="items-per-page">Sayfa başına kayıt:</label>
         <select id="items-per-page"
