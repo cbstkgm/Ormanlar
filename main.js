@@ -43,9 +43,9 @@ let currentLayers = [];
 let activeMapLayers = { a: null, b: null, int: null };
 let allData = [];
 let filteredData = []; // Arama sonrası filtrelenmiş verileri tutar
-let currentViewMode = 'grid'; // 'grid' veya 'list'
+let currentViewMode = 'list'; // 'grid' veya 'list'
 let currentPage = 1;
-let itemsPerPage = 10;
+let itemsPerPage = 100;
 
 // View Toggles DOM Elements
 const viewTogglesContainer = document.getElementById('view-toggles');
@@ -406,8 +406,8 @@ function renderList() {
   // Görüntülenecek veriyi dilimle
   const pageData = filteredData.slice(startIndex, endIndex);
 
-  // Mevcut grid/list class'larını temizle
-  listContainer.className = '';
+  // Mevcut dinamik class'ları temizle ve padding statik sınıflarını koru
+  listContainer.className = 'px-2 sm:px-4 pt-4 pb-24 content-start';
   
   if (currentViewMode === 'grid') {
     listContainer.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-6');
@@ -434,34 +434,34 @@ function renderList() {
     // Card HTML
     if (currentViewMode === 'grid') {
       card.innerHTML = `
-        <div class="p-5 flex-1">
-          <div class="flex justify-between items-start mb-2">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+        <div class="p-3 sm:p-5 flex-1">
+          <div class="flex justify-between items-start mb-1 sm:mb-2">
+            <span class="inline-flex items-center px-1.5 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-emerald-100 text-emerald-800">
               Mükerrer Tespit
             </span>
-            <span class="text-xs text-gray-400">#${globalIndex}</span>
+            <span class="text-[10px] sm:text-xs text-gray-400">#${globalIndex}</span>
           </div>
-          <h3 class="text-lg font-bold text-gray-900 mb-1 leading-tight group-hover:text-emerald-600 transition-colors">
+          <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-0.5 sm:mb-1 leading-tight group-hover:text-emerald-600 transition-colors">
             ${record.ilad || '-'} / ${record.ilcead || '-'}
           </h3>
-          <p class="text-sm font-medium text-gray-500 mb-4">${record.mahallead || '-'}</p>
+          <p class="text-[11px] sm:text-sm font-medium text-gray-500 mb-2 sm:mb-4">${record.mahallead || '-'}</p>
           
-          <div class="grid grid-cols-2 gap-4 text-sm mt-auto">
-            <div class="bg-blue-50/90 p-3 rounded-lg border border-blue-100/50">
-              <p class="text-xs text-blue-600 font-semibold mb-1 uppercase tracking-wider">Orman A</p>
+          <div class="grid grid-cols-2 gap-2 sm:gap-4 text-[11px] sm:text-sm mt-auto">
+            <div class="bg-blue-50/90 p-2 sm:p-3 rounded-lg border border-blue-100/50">
+              <p class="text-[9px] sm:text-xs text-blue-600 font-semibold mb-0.5 sm:mb-1 uppercase tracking-wider">Orman A</p>
               <p class="text-gray-800 font-bold">Ada: ${record.parsel_a_adano || '-'}</p>
               <p class="text-gray-800">Parsel: ${record.parsel_a_parselno || '-'}</p>
             </div>
-            <div class="bg-emerald-50/90 p-3 rounded-lg border border-emerald-100/50">
-              <p class="text-xs text-emerald-600 font-semibold mb-1 uppercase tracking-wider">Orman B</p>
+            <div class="bg-emerald-50/90 p-2 sm:p-3 rounded-lg border border-emerald-100/50">
+              <p class="text-[9px] sm:text-xs text-emerald-600 font-semibold mb-0.5 sm:mb-1 uppercase tracking-wider">Orman B</p>
               <p class="text-gray-800 font-bold">Ada: ${record.parsel_b_adano || '-'}</p>
               <p class="text-gray-800">Parsel: ${record.parsel_b_parselno || '-'}</p>
             </div>
           </div>
         </div>
-        <div class="bg-white/90 px-5 py-3 border-t border-white/50 flex items-center justify-between">
-           <span class="text-xs font-semibold text-gray-500">Kesişim Alanı:</span>
-           <span class="text-sm font-bold text-red-600">${parseFloat(record.kesisim_alani_m2 || 0).toFixed(2)} m²</span>
+        <div class="bg-white/90 px-3 sm:px-5 py-2 sm:py-3 border-t border-white/50 flex items-center justify-between">
+           <span class="text-[10px] sm:text-xs font-semibold text-gray-500">Kesişim Alanı:</span>
+           <span class="text-xs sm:text-sm font-bold text-red-600">${parseFloat(record.kesisim_alani_m2 || 0).toFixed(2)} m²</span>
         </div>
       `;
     } else {
@@ -477,16 +477,19 @@ function renderList() {
             <h3 class="text-sm sm:text-base font-bold text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight">
               ${record.ilad || '-'} / ${record.ilcead || '-'}
             </h3>
-            <p class="text-xs text-gray-500">${record.mahallead || '-'}</p>
             
-            <!-- Mobilde (sm:hidden) Orman A ve B'yi ince badge olarak göster -->
-            <div class="flex items-center gap-2 text-[10px] sm:hidden mt-2">
-               <span class="text-blue-700 bg-blue-50/80 px-1.5 py-1 rounded border border-blue-100">
-                 <span class="font-bold">A:</span> ${record.parsel_a_adano || '-'}/${record.parsel_a_parselno || '-'}
-               </span>
-               <span class="text-emerald-700 bg-emerald-50/80 px-1.5 py-1 rounded border border-emerald-100">
-                 <span class="font-bold">B:</span> ${record.parsel_b_adano || '-'}/${record.parsel_b_parselno || '-'}
-               </span>
+            <div class="flex flex-row items-center justify-between sm:justify-start gap-2 mt-0.5 sm:mt-0">
+               <p class="text-xs text-gray-500">${record.mahallead || '-'}</p>
+               
+               <!-- Mobilde (sm:hidden) Orman A ve B'yi ince badge olarak aynı satırda göster -->
+               <div class="flex items-center gap-1.5 text-[9px] sm:hidden">
+                 <span class="text-blue-700 bg-blue-50/80 px-1 py-0.5 rounded border border-blue-100">
+                   <span class="font-bold">A:</span> ${record.parsel_a_adano || '-'}/${record.parsel_a_parselno || '-'}
+                 </span>
+                 <span class="text-emerald-700 bg-emerald-50/80 px-1 py-0.5 rounded border border-emerald-100">
+                   <span class="font-bold">B:</span> ${record.parsel_b_adano || '-'}/${record.parsel_b_parselno || '-'}
+                 </span>
+               </div>
             </div>
           </div>
           
@@ -695,6 +698,7 @@ async function loadData() {
 
 // Uygulama Başlatma
 document.addEventListener('DOMContentLoaded', () => {
+  updateViewToggleUI();
   loadData();
   updateVisitorCount();
 });
