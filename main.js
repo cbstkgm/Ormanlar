@@ -578,8 +578,17 @@ async function loadData() {
     statusText.textContent = 'Ağdan veya önbellekten indiriliyor (141 MB)...';
     
     let arrayBuffer;
-    const cache = await caches.open(cacheName);
-    const cachedResponse = await cache.match(zipUrl);
+    let cache = null;
+    let cachedResponse = null;
+
+    try {
+      if ('caches' in window) {
+        cache = await caches.open(cacheName);
+        cachedResponse = await cache.match(zipUrl);
+      }
+    } catch (e) {
+      console.warn("Cache API okuma hatası (Private mode olabilir):", e);
+    }
     
     if (cachedResponse) {
        updateProgress('download', 100);
@@ -613,9 +622,15 @@ async function loadData() {
        }
        arrayBuffer = chunksAll.buffer;
        
-       // Cache'e kopyala
-       const cacheResponse = new Response(arrayBuffer, { headers: response.headers });
-       await cache.put(zipUrl, cacheResponse);
+       // Cache'e kopyala (Hata fırlatmasını önle)
+       if (cache) {
+         try {
+           const cacheResponse = new Response(arrayBuffer, { headers: response.headers });
+           await cache.put(zipUrl, cacheResponse);
+         } catch(e) {
+           console.warn("Cache yazma hatası (Kota aşımı veya yetki):", e);
+         }
+       }
        
        setStepActive('step-download');
        statusText.textContent = 'Dosya başarıyla indirildi ve diske kaydedildi.';
@@ -679,6 +694,18 @@ async function loadData() {
           statusText.textContent = 'Harita hazırlandı!';
           if (parseBar) parseBar.classList.remove('animate-pulse');
           
+          // Verileri İl ve İlçeye göre (A'dan Z'ye) Türkçe karakter uyumlu sırala
+          allData.sort((a, b) => {
+            const ilA = a.ilad || '';
+            const ilB = b.ilad || '';
+            const ilFarki = ilA.localeCompare(ilB, 'tr-TR');
+            if (ilFarki !== 0) return ilFarki;
+            
+            const ilceA = a.ilcead || '';
+            const ilceB = b.ilcead || '';
+            return ilceA.localeCompare(ilceB, 'tr-TR');
+          });
+
           // Fazladan kopyalama (RAM) yapmamak için doğrudan referans atıyoruz
           filteredData = allData;
           searchInput.disabled = false;
