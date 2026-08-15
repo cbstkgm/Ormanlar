@@ -111,16 +111,16 @@ nextPageBtn.addEventListener('click', () => {
 let searchTimeout;
 searchInput.addEventListener('input', (e) => {
   clearTimeout(searchTimeout);
-  const term = e.target.value.toLowerCase().trim();
+  const term = e.target.value.toLocaleLowerCase('tr-TR').trim();
   
   searchTimeout = setTimeout(() => {
     if (!term) {
       filteredData = [...allData];
     } else {
       filteredData = allData.filter(record => {
-        // Obje değerlerini string'e çevirip içinde aranan metin var mı bakıyoruz (hızlı ve basit)
+        // Obje değerlerini string'e çevirip Türkçe uyumlu küçük harf ile arıyoruz
         return Object.values(record).some(val => 
-          val && String(val).toLowerCase().includes(term)
+          val && String(val).toLocaleLowerCase('tr-TR').includes(term)
         );
       });
     }
@@ -645,7 +645,7 @@ async function loadData() {
       // 3. PapaParse ile BLOB'u parse et (String olmadığı için TypeError vermez)
       Papa.parse(csvBlob, {
         header: true,
-        worker: false, // Arka plan (Worker) kilitlenmesini engellemek için ana bellekte çalıştır
+        worker: true, // UI'nin donmasını/çökmesini engellemek için arka planda çalıştır
         delimiter: ';',
         skipEmptyLines: true,
         complete: function (results) {
