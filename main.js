@@ -574,7 +574,7 @@ async function loadData(ilAdi) {
     const loadingSpinner = document.getElementById('loading-spinner');
     
     // UI Ayarları
-    document.getElementById('city-selector-container').classList.add('hidden');
+    loading.classList.remove('hidden', 'opacity-0');
     loadingSteps.classList.remove('hidden');
     loadingSpinner.classList.remove('hidden');
     
@@ -678,10 +678,9 @@ document.addEventListener('DOMContentLoaded', () => {
   updateVisitorCount();
   
   // İl seçiciyi doldur
-  const citySelect = document.getElementById('city-select');
-  const startBtn = document.getElementById('start-btn');
+  const citySelect = document.getElementById('header-city-select');
   
-  if (citySelect && startBtn) {
+  if (citySelect) {
       iller.forEach(il => {
           const option = document.createElement('option');
           option.value = il;
@@ -690,16 +689,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       
       citySelect.addEventListener('change', () => {
-          if (citySelect.value) {
-              startBtn.disabled = false;
-          }
-      });
-      
-      startBtn.addEventListener('click', () => {
           const seciliIl = citySelect.value;
           if (seciliIl) {
-              startBtn.disabled = true;
-              startBtn.textContent = 'Yükleniyor...';
               loadData(seciliIl);
           }
       });
