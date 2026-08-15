@@ -637,46 +637,50 @@ async function loadData() {
     const parseBar = document.getElementById('prog-bar-parse');
     if (parseBar) parseBar.classList.add('animate-pulse');
     
-    // 3. PapaParse ile BLOB'u parse et (String olmadığı için TypeError vermez)
-    Papa.parse(csvBlob, {
-      header: true,
-      worker: true,
-      delimiter: ';',
-      skipEmptyLines: true,
-      complete: function (results) {
-        updateProgress('parse', 100);
-        setStepActive('step-parse');
-        statusText.textContent = 'Harita hazırlandı!';
-        if (parseBar) parseBar.classList.remove('animate-pulse');
-        
-        allData = results.data;
-        allData.sort((a, b) => {
-          const ilA = (a.ilad || '').trim();
-          const ilB = (b.ilad || '').trim();
-          const ilCompare = ilA.localeCompare(ilB, 'tr');
-          if (ilCompare !== 0) return ilCompare;
-          const ilceA = (a.ilcead || '').trim();
-          const ilceB = (b.ilcead || '').trim();
-          return ilceA.localeCompare(ilceB, 'tr');
-        });
+    // UI'ın (İlerleme çubuklarının) ekrana çizilmesini garanti altına almak için kısa bir bekleme
+    setTimeout(() => {
+      // 3. PapaParse ile BLOB'u parse et (String olmadığı için TypeError vermez)
+      Papa.parse(csvBlob, {
+        header: true,
+        worker: false, // Arka plan (Worker) kilitlenmesini engellemek için ana bellekte çalıştır
+        delimiter: ';',
+        skipEmptyLines: true,
+        complete: function (results) {
+          updateProgress('parse', 100);
+          setStepActive('step-parse');
+          statusText.textContent = 'Harita hazırlandı!';
+          if (parseBar) parseBar.classList.remove('animate-pulse');
+          
+          allData = results.data;
+          allData.sort((a, b) => {
+            const ilA = (a.ilad || '').trim();
+            const ilB = (b.ilad || '').trim();
+            const ilCompare = ilA.localeCompare(ilB, 'tr');
+            if (ilCompare !== 0) return ilCompare;
+            const ilceA = (a.ilcead || '').trim();
+            const ilceB = (b.ilcead || '').trim();
+            return ilceA.localeCompare(ilceB, 'tr');
+          });
 
-        filteredData = [...allData];
-        searchInput.disabled = false;
-        renderList();
-        
-        // Yükleme ekranını gizle (Sinematik Fade Out)
-        setTimeout(() => {
-           loading.classList.add('opacity-0');
-           setTimeout(() => { loading.classList.add('hidden'); }, 700);
-        }, 800);
-      },
-      error: function (error) {
-        console.error("CSV Ayrıştırma Hatası:", error);
-        statusText.textContent = 'Veriler ayrıştırılırken hata oluştu!';
-        statusText.classList.add('text-red-400');
-        recordCount.textContent = 'Hata!';
-      }
-    });
+          filteredData = [...allData];
+          searchInput.disabled = false;
+          renderList();
+          
+          // Yükleme ekranını gizle (Sinematik Fade Out)
+          setTimeout(() => {
+             loading.classList.add('opacity-0');
+             setTimeout(() => { loading.classList.add('hidden'); }, 700);
+          }, 800);
+        },
+        error: function (error) {
+          console.error("CSV Ayrıştırma Hatası:", error);
+          statusText.textContent = 'Veriler ayrıştırılırken hata oluştu!';
+          statusText.classList.add('text-red-400');
+          recordCount.textContent = 'Hata!';
+        }
+      });
+    }, 500);
+
 
   } catch (err) {
     console.error("CSV Yükleme Hatası:", err);
