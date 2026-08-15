@@ -643,21 +643,36 @@ async function loadData() {
     
     // UI'ın (İlerleme çubuklarının) ekrana çizilmesini garanti altına almak için kısa bir bekleme
     setTimeout(() => {
+      // Çökmeleri önlemek için veriyi global diziye parçalar halinde ekleyeceğiz
+      allData = [];
+      let parsedCount = 0;
+
       Papa.parse(csvBlob, {
         header: true,
         worker: false, // Worker kullanımı Github Pages'te yol sorununa/donmaya yol açtığı için iptal edildi.
         delimiter: ';',
         skipEmptyLines: true,
-        complete: function (results) {
+        // Chunk (Parça Parça İşleme): Mobil tarayıcı (Safari/Chrome) donmasını/çökmesini %100 önler
+        chunk: function (results, parser) {
+          parser.pause(); // Tarayıcıya nefes aldırmak için işlemi anlık durdur
+          
+          allData.push(...results.data);
+          parsedCount += results.data.length;
+          
+          // Ekrana yüzeysel bir yüzde yansıt (Tahmini)
+          const estimate = Math.min(99, 10 + Math.floor((parsedCount / 9000) * 90));
+          updateProgress('parse', estimate);
+          
+          // 25ms mola (Garbage Collector RAM'i temizler, telefon kilitlenmez)
+          setTimeout(() => {
+             parser.resume();
+          }, 25);
+        },
+        complete: function () {
           updateProgress('parse', 100);
           setStepActive('step-parse');
           statusText.textContent = 'Harita hazırlandı!';
           if (parseBar) parseBar.classList.remove('animate-pulse');
-          
-          allData = results.data;
-          
-          // Bellek (RAM) ve işlemciyi korumak için ağır sıralama (sorting) işlemi iptal edilmiştir.
-          // allData.sort(...)
           
           // Fazladan kopyalama (RAM) yapmamak için doğrudan referans atıyoruz
           filteredData = allData;
