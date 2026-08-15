@@ -655,17 +655,12 @@ async function loadData() {
           if (parseBar) parseBar.classList.remove('animate-pulse');
           
           allData = results.data;
-          allData.sort((a, b) => {
-            const ilA = (a.ilad || '').trim();
-            const ilB = (b.ilad || '').trim();
-            const ilCompare = ilA.localeCompare(ilB, 'tr');
-            if (ilCompare !== 0) return ilCompare;
-            const ilceA = (a.ilcead || '').trim();
-            const ilceB = (b.ilcead || '').trim();
-            return ilceA.localeCompare(ilceB, 'tr');
-          });
-
-          filteredData = [...allData];
+          
+          // Bellek (RAM) ve işlemciyi korumak için ağır sıralama (sorting) işlemi iptal edilmiştir.
+          // allData.sort(...)
+          
+          // Fazladan kopyalama (RAM) yapmamak için doğrudan referans atıyoruz
+          filteredData = allData;
           searchInput.disabled = false;
           renderList();
           
