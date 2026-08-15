@@ -520,39 +520,74 @@ function renderList() {
   });
 }
 
-// CSV Verisini ZIP içerisinden Fetch Etme
+// Sinematik Adım Güncelleyici
+function setStepActive(stepId) {
+  const el = document.getElementById(stepId);
+  if (el) {
+    el.classList.remove('text-gray-400');
+    el.classList.add('text-emerald-400');
+    const svg = el.querySelector('svg');
+    if (svg) {
+      svg.outerHTML = `<svg class="w-5 h-5 mr-3 flex-shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
+    }
+  }
+}
+
+// Global Ziyaretçi Sayacı
+async function updateVisitorCount() {
+  try {
+    const res = await fetch('https://api.counterapi.dev/v1/cbstkgm/ormanlar3/up');
+    const data = await res.json();
+    const countEl = document.getElementById('visitor-count');
+    if (countEl) countEl.textContent = data.count.toLocaleString();
+  } catch(e) {
+    const countEl = document.getElementById('visitor-count');
+    if (countEl) countEl.textContent = '...';
+  }
+}
+
+// CSV Verisini ZIP içerisinden Fetch Etme (Cache Destekli)
 async function loadData() {
   try {
-    recordCount.textContent = 'Veri indiriliyor (ZIP)...';
-    loading.innerHTML = `<p class="text-emerald-700 font-medium">Veri indiriliyor (141 MB)... Lütfen bekleyin.</p>`;
+    recordCount.textContent = 'Veri hazırlanıyor...';
+    const statusText = document.getElementById('loading-status');
     
-    // 1. ZIP dosyasını indir
+    // 1. ZIP dosyasını indir (Cache Kontrolü)
     const zipUrl = new URL('MukerrerOrmanlar.csv.zip', window.location.href).href;
-    const response = await fetch(zipUrl);
+    const cacheName = 'ormanlar-cache-v1';
     
-    if (!response.ok) {
-      throw new Error(`Ağ hatası: ${response.status}`);
+    statusText.textContent = 'Ağdan veya önbellekten indiriliyor (141 MB)...';
+    
+    let response;
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await cache.match(zipUrl);
+    
+    if (cachedResponse) {
+       response = cachedResponse;
+       setStepActive('step-download');
+       statusText.textContent = 'Önbellekten (Cache) anında yüklendi!';
+    } else {
+       response = await fetch(zipUrl);
+       if (!response.ok) throw new Error(`Ağ hatası: ${response.status}`);
+       
+       // Cache'e kopyala (clone önemli!)
+       await cache.put(zipUrl, response.clone());
+       setStepActive('step-download');
+       statusText.textContent = 'Dosya başarıyla indirildi ve diske kaydedildi.';
     }
     
-    recordCount.textContent = 'Veri çıkartılıyor...';
-    loading.innerHTML = `<p class="text-emerald-700 font-medium">Veri bilgisayarınıza çıkarılıyor (Unzip)... Bu işlem RAM kullanacaktır.</p>`;
-    
+    statusText.textContent = 'Veri bilgisayarınıza çıkarılıyor (Unzip)...';
     const arrayBuffer = await response.arrayBuffer();
     
     // 2. JSZip ile bellekte aç
     const zip = await JSZip.loadAsync(arrayBuffer);
-    
-    // İçindeki CSV dosyasını bul
     const csvFilename = Object.keys(zip.files).find(name => name.endsWith('.csv'));
-    if (!csvFilename) {
-      throw new Error('ZIP içinde .csv uzantılı dosya bulunamadı!');
-    }
+    if (!csvFilename) throw new Error('ZIP içinde .csv bulunamadı!');
+    
+    setStepActive('step-unzip');
+    statusText.textContent = 'Veriler haritaya dökülüyor (Parse)...';
     
     const csvFile = zip.files[csvFilename];
-    recordCount.textContent = 'Veri işleniyor...';
-    loading.innerHTML = `<p class="text-emerald-700 font-medium">Veriler haritaya dökülüyor (Parse)... Harita hazırlanıyor.</p>`;
-    
-    // CSV metnini çıkar
     const csvText = await csvFile.async('string');
     
     // 3. PapaParse ile metni parse et
@@ -562,36 +597,45 @@ async function loadData() {
       delimiter: ';',
       skipEmptyLines: true,
       complete: function (results) {
-        allData = results.data;
+        setStepActive('step-parse');
+        statusText.textContent = 'Harita hazırlandı!';
         
-        // İl ve İlçeye göre A'dan Z'ye (Türkçe karakter uyumlu) sıralama
+        allData = results.data;
         allData.sort((a, b) => {
           const ilA = (a.ilad || '').trim();
           const ilB = (b.ilad || '').trim();
           const ilCompare = ilA.localeCompare(ilB, 'tr');
-          
-          if (ilCompare !== 0) return ilCompare; // İller farklıysa ile göre sırala
-          
-          // İller aynıysa ilçeye göre sırala
+          if (ilCompare !== 0) return ilCompare;
           const ilceA = (a.ilcead || '').trim();
           const ilceB = (b.ilcead || '').trim();
           return ilceA.localeCompare(ilceB, 'tr');
         });
 
-        filteredData = [...allData]; // Başlangıçta hepsi gösterilir
-        searchInput.disabled = false; // Arama kutusunu aktifleştir
+        filteredData = [...allData];
+        searchInput.disabled = false;
         renderList();
+        
+        // Yükleme ekranını gizle (Sinematik Fade Out)
+        setTimeout(() => {
+           loading.classList.add('opacity-0');
+           setTimeout(() => { loading.classList.add('hidden'); }, 700);
+        }, 800);
       },
       error: function (error) {
         console.error("CSV Ayrıştırma Hatası:", error);
-        loading.innerHTML = `<p class="text-red-500">Veriler ayrıştırılırken bir hata oluştu.</p>`;
+        statusText.textContent = 'Veriler ayrıştırılırken hata oluştu!';
+        statusText.classList.add('text-red-400');
         recordCount.textContent = 'Hata!';
       }
     });
 
   } catch (err) {
     console.error("CSV Yükleme Hatası:", err);
-    loading.innerHTML = `<p class="text-red-500">ZIP dosyası indirilirken veya açılırken hata oluştu: ${err.message}</p>`;
+    const statusText = document.getElementById('loading-status');
+    if (statusText) {
+       statusText.textContent = `Hata: ${err.message}`;
+       statusText.classList.add('text-red-400');
+    }
     recordCount.textContent = 'Hata!';
   }
 }
@@ -599,4 +643,5 @@ async function loadData() {
 // Uygulama Başlatma
 document.addEventListener('DOMContentLoaded', () => {
   loadData();
+  updateVisitorCount();
 });
