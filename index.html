@@ -18,9 +18,15 @@
 
   <!-- Header -->
   <header class="bg-emerald-900/60 backdrop-blur-md shadow-md z-10 border-b border-emerald-400/20 flex-shrink-0">
-    <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-      <h1 class="text-xl font-semibold text-white hidden sm:block drop-shadow-sm">Mükerrer Orman Parselleri</h1>
-      <div class="flex items-center space-x-3 sm:space-x-4 flex-1 justify-end ml-4">
+    <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-2 sm:py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+      <!-- Title & Record Count (Mobilde de görünür) -->
+      <div class="flex justify-between items-center w-full sm:w-auto">
+        <h1 class="text-lg sm:text-xl font-semibold text-white drop-shadow-sm">Mükerrer Parseller</h1>
+        <div class="text-xs sm:text-sm text-emerald-50 bg-emerald-800/60 px-2.5 py-1 rounded-md whitespace-nowrap ml-3" id="record-count">Yükleniyor...</div>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center space-x-2 w-full sm:w-auto flex-1 sm:justify-end">
         <!-- İL SEÇİCİ HEADER -->
         <div class="relative flex-1 max-w-[50%] sm:max-w-[200px]">
            <select id="header-city-select" class="w-full bg-emerald-800/80 border border-emerald-500/50 text-white text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block outline-none cursor-pointer appearance-none pl-3 pr-8 shadow-sm h-10">
@@ -42,7 +48,6 @@
             </svg>
           </div>
         </div>
-        <div class="text-sm text-emerald-50 whitespace-nowrap hidden md:block" id="record-count">Yükleniyor...</div>
         <div class="flex bg-black/20 p-1 rounded-lg hidden flex-shrink-0 border border-white/10" id="view-toggles">
           <button id="view-grid-btn" class="p-1.5 rounded-md bg-white/20 shadow-sm text-white focus:outline-none"
             title="Kart Görünümü">
