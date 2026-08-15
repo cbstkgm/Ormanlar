@@ -13,6 +13,38 @@ const mapTitle = document.getElementById('map-title');
 const recordCount = document.getElementById('record-count');
 const searchInput = document.getElementById('search-input');
 
+// Gelişmiş Filtreleme DOM
+const openFilterBtn = document.getElementById('open-filter-btn');
+const closeFilterBtn = document.getElementById('close-filter-btn');
+const filterOverlay = document.getElementById('filter-overlay');
+const filterDrawer = document.getElementById('filter-drawer');
+const filterIlce = document.getElementById('filter-ilce');
+const filterMahalle = document.getElementById('filter-mahalle');
+const filterAda = document.getElementById('filter-ada');
+const filterParsel = document.getElementById('filter-parsel');
+const filterKesisimOp = document.getElementById('filter-kesisim-op');
+const filterKesisimVal = document.getElementById('filter-kesisim-val');
+const filterTapuCins = document.getElementById('filter-tapucins');
+const filterApplyBtn = document.getElementById('filter-apply-btn');
+const filterClearBtn = document.getElementById('filter-clear-btn');
+const filterBadge = document.getElementById('filter-badge');
+
+// Filter Drawer Aç Kapat
+function toggleFilterDrawer() {
+  if (filterDrawer.classList.contains('translate-x-full')) {
+    filterDrawer.classList.remove('translate-x-full');
+    filterOverlay.classList.remove('hidden');
+    setTimeout(() => filterOverlay.classList.remove('opacity-0'), 10);
+  } else {
+    filterDrawer.classList.add('translate-x-full');
+    filterOverlay.classList.add('opacity-0');
+    setTimeout(() => filterOverlay.classList.add('hidden'), 300);
+  }
+}
+if (openFilterBtn) openFilterBtn.addEventListener('click', toggleFilterDrawer);
+if (closeFilterBtn) closeFilterBtn.addEventListener('click', toggleFilterDrawer);
+if (filterOverlay) filterOverlay.addEventListener('click', toggleFilterDrawer);
+
 // Layer Control Elements
 const toggleLayerA = document.getElementById('toggle-layer-a');
 const toggleLayerB = document.getElementById('toggle-layer-b');
@@ -107,27 +139,134 @@ nextPageBtn.addEventListener('click', () => {
   }
 });
 
+// Arama ve Filtreleme Uygulama Fonksiyonu
+function applyFilters() {
+  const searchTerm = searchInput.value.toLocaleLowerCase('tr-TR').trim();
+  const selectedIlceler = Array.from(filterIlce.selectedOptions).map(opt => opt.value);
+  const selectedMahalleler = Array.from(filterMahalle.selectedOptions).map(opt => opt.value);
+  const selectedAdalar = Array.from(filterAda.selectedOptions).map(opt => opt.value);
+  const selectedParseller = Array.from(filterParsel.selectedOptions).map(opt => opt.value);
+  const selectedCinsler = Array.from(filterTapuCins.selectedOptions).map(opt => opt.value);
+  const kesOp = filterKesisimOp.value;
+  const kesVal = parseFloat(filterKesisimVal.value);
+
+  filteredData = allData.filter(record => {
+    // 1. Hızlı Arama
+    if (searchTerm) {
+       const hasSearchTerm = Object.values(record).some(val => 
+          val && String(val).toLocaleLowerCase('tr-TR').includes(searchTerm)
+       );
+       if (!hasSearchTerm) return false;
+    }
+    // 2. İlçe Kontrolü
+    if (selectedIlceler.length > 0 && !selectedIlceler.includes(record.ilcead)) return false;
+    // 3. Mahalle Kontrolü
+    if (selectedMahalleler.length > 0 && !selectedMahalleler.includes(record.mahallead)) return false;
+    // 4. Ada
+    if (selectedAdalar.length > 0) {
+       const adaA = String(record.parsel_a_adano || '').trim();
+       const adaB = String(record.parsel_b_adano || '').trim();
+       if (!selectedAdalar.includes(adaA) && !selectedAdalar.includes(adaB)) return false;
+    }
+    // 5. Parsel
+    if (selectedParseller.length > 0) {
+       const parA = String(record.parsel_a_parselno || '').trim();
+       const parB = String(record.parsel_b_parselno || '').trim();
+       if (!selectedParseller.includes(parA) && !selectedParseller.includes(parB)) return false;
+    }
+    // 6. Kesişim
+    if (kesOp && !isNaN(kesVal)) {
+       const recKes = parseFloat(record.kesisim_alani_m2 || 0);
+       if (kesOp === '>' && recKes <= kesVal) return false;
+       if (kesOp === '<' && recKes >= kesVal) return false;
+       if (kesOp === '=' && recKes !== kesVal) return false;
+    }
+    // 7. Tapu Cins
+    if (selectedCinsler.length > 0) {
+       const cinsA = String(record.orman_a_tapucinsaciklama || '').trim();
+       const cinsB = String(record.orman_b_tapucinsaciklama || '').trim();
+       if (!selectedCinsler.includes(cinsA) && !selectedCinsler.includes(cinsB)) return false;
+    }
+    return true;
+  });
+  
+  currentPage = 1;
+  renderList();
+  updateFilterBadge();
+}
+
+function updateFilterBadge() {
+  let count = 0;
+  if (filterIlce.selectedOptions.length > 0) count++;
+  if (filterMahalle.selectedOptions.length > 0) count++;
+  if (filterAda.selectedOptions.length > 0) count++;
+  if (filterParsel.selectedOptions.length > 0) count++;
+  if (filterKesisimOp.value !== '' && filterKesisimVal.value !== '') count++;
+  if (filterTapuCins.selectedOptions.length > 0) count++;
+  
+  if (count > 0) {
+    filterBadge.textContent = count;
+    filterBadge.classList.remove('hidden');
+    openFilterBtn.classList.add('bg-emerald-600', 'text-white', 'border-emerald-500');
+    openFilterBtn.classList.remove('bg-white/10', 'text-emerald-50');
+  } else {
+    filterBadge.classList.add('hidden');
+    openFilterBtn.classList.remove('bg-emerald-600', 'text-white', 'border-emerald-500');
+    openFilterBtn.classList.add('bg-white/10', 'text-emerald-50');
+  }
+}
+
+if (filterApplyBtn) {
+  filterApplyBtn.addEventListener('click', () => {
+    applyFilters();
+    toggleFilterDrawer();
+  });
+}
+
+if (filterClearBtn) {
+  filterClearBtn.addEventListener('click', () => {
+    Array.from(filterIlce.options).forEach(opt => opt.selected = false);
+    Array.from(filterMahalle.options).forEach(opt => opt.selected = false);
+    Array.from(filterAda.options).forEach(opt => opt.selected = false);
+    Array.from(filterParsel.options).forEach(opt => opt.selected = false);
+    Array.from(filterTapuCins.options).forEach(opt => opt.selected = false);
+    filterKesisimOp.value = '';
+    filterKesisimVal.value = '';
+    applyFilters();
+  });
+}
+
 // Search Events (Debounce ile)
 let searchTimeout;
 searchInput.addEventListener('input', (e) => {
   clearTimeout(searchTimeout);
-  const term = e.target.value.toLocaleLowerCase('tr-TR').trim();
-  
   searchTimeout = setTimeout(() => {
-    if (!term) {
-      filteredData = [...allData];
-    } else {
-      filteredData = allData.filter(record => {
-        // Obje değerlerini string'e çevirip Türkçe uyumlu küçük harf ile arıyoruz
-        return Object.values(record).some(val => 
-          val && String(val).toLocaleLowerCase('tr-TR').includes(term)
-        );
-      });
-    }
-    currentPage = 1;
-    renderList();
+    applyFilters();
   }, 250);
 });
+
+// İlçe değiştiğinde Mahalleleri doldurma
+if (filterIlce) {
+  filterIlce.addEventListener('change', () => {
+    const selectedIlceler = Array.from(filterIlce.selectedOptions).map(opt => opt.value);
+    filterMahalle.innerHTML = '';
+    let currentMahalleler = new Set();
+    
+    allData.forEach(r => {
+      if (selectedIlceler.length === 0 || selectedIlceler.includes(r.ilcead)) {
+        if (r.mahallead) currentMahalleler.add(r.mahallead);
+      }
+    });
+    
+    const sortedMahalleler = Array.from(currentMahalleler).sort((a,b) => a.localeCompare(b, 'tr-TR'));
+    sortedMahalleler.forEach(mah => {
+      const opt = document.createElement('option');
+      opt.value = mah;
+      opt.textContent = mah;
+      filterMahalle.appendChild(opt);
+    });
+  });
+}
 
 // Map Layer Toggles
 toggleLayerA.addEventListener('change', (e) => {
@@ -327,6 +466,7 @@ function openMap(record) {
                          <div><strong>Mahalle:</strong> ${record.mahallead}</div>
                          <div><strong>Ada/Parsel:</strong> ${record.parsel_a_adano} / ${record.parsel_a_parselno}</div>
                          <div><strong>Tapu Alanı:</strong> ${record.parsel_a_tapualan || '-'} m²</div>
+                         <div><strong>Cinsi:</strong> ${record.orman_a_tapucinsaciklama || '-'}</div>
                        </div>`;
       const layerA = createLayerFromWKT(record.parsel_a_geom, p1Style, content);
       if (layerA) {
@@ -342,10 +482,11 @@ function openMap(record) {
       const p2Style = { color: '#059669', weight: 2, fillColor: '#10b981', fillOpacity: 0.3 };
       const content = `<div class="space-y-1">
                          <div class="text-[15px] font-bold text-emerald-700 border-b pb-1 mb-2">Orman B Parseli</div>
-                         <div><strong>İl/İlçe:</strong> ${record.ilad} / ${record.ilcead}</div>
-                         <div><strong>Mahalle:</strong> ${record.mahallead}</div>
+                         <div><strong>İl/İlçe:</strong> ${record.orman_b_ilad || '-'} / ${record.orman_b_ilcead || '-'}</div>
+                         <div><strong>Mahalle:</strong> ${record.orman_b_mahallead || '-'}</div>
                          <div><strong>Ada/Parsel:</strong> ${record.parsel_b_adano} / ${record.parsel_b_parselno}</div>
                          <div><strong>Tapu Alanı:</strong> ${record.parsel_b_tapualan || '-'} m²</div>
+                         <div><strong>Cinsi:</strong> ${record.orman_b_tapucinsaciklama || '-'}</div>
                        </div>`;
       const layerB = createLayerFromWKT(record.parsel_b_geom, p2Style, content);
       if (layerB) {
@@ -454,20 +595,28 @@ function renderList() {
             <span class="text-[10px] sm:text-xs text-gray-400">#${globalIndex}</span>
           </div>
           <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-0.5 sm:mb-1 leading-tight group-hover:text-emerald-600 transition-colors">
-            ${record.ilad || '-'} / ${record.ilcead || '-'}
+            A: ${record.ilad || '-'} / ${record.ilcead || '-'}
           </h3>
-          <p class="text-[11px] sm:text-sm font-medium text-gray-500 mb-2 sm:mb-4">${record.mahallead || '-'}</p>
+          <p class="text-[11px] sm:text-sm font-medium text-gray-500 mb-1">A: ${record.mahallead || '-'}</p>
+          <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-0.5 sm:mb-1 leading-tight group-hover:text-emerald-600 transition-colors">
+            B: ${record.orman_b_ilad || '-'} / ${record.orman_b_ilcead || '-'}
+          </h3>
+          <p class="text-[11px] sm:text-sm font-medium text-gray-500 mb-2 sm:mb-4">B: ${record.orman_b_mahallead || '-'}</p>
           
           <div class="grid grid-cols-2 gap-2 sm:gap-4 text-[11px] sm:text-sm mt-auto">
             <div class="bg-blue-50/90 p-2 sm:p-3 rounded-lg border border-blue-100/50">
               <p class="text-[9px] sm:text-xs text-blue-600 font-semibold mb-0.5 sm:mb-1 uppercase tracking-wider">Orman A</p>
-              <p class="text-gray-800 font-bold">Ada: ${record.parsel_a_adano || '-'}</p>
-              <p class="text-gray-800">Parsel: ${record.parsel_a_parselno || '-'}</p>
+              <p class="text-gray-800 font-bold">Ada/Parsel: ${record.parsel_a_adano || '-'}/${record.parsel_a_parselno || '-'}</p>
+              <p class="text-gray-800">Alan: ${record.parsel_a_tapualan || '-'} m²</p>
+              <p class="text-gray-800">Zemin Ref: ${record.orman_a_tapuzeminref || '-'}</p>
+              <p class="text-gray-800 mt-1 text-[10px] line-clamp-2" title="${record.orman_a_tapucinsaciklama || '-'}">${record.orman_a_tapucinsaciklama || '-'}</p>
             </div>
             <div class="bg-emerald-50/90 p-2 sm:p-3 rounded-lg border border-emerald-100/50">
               <p class="text-[9px] sm:text-xs text-emerald-600 font-semibold mb-0.5 sm:mb-1 uppercase tracking-wider">Orman B</p>
-              <p class="text-gray-800 font-bold">Ada: ${record.parsel_b_adano || '-'}</p>
-              <p class="text-gray-800">Parsel: ${record.parsel_b_parselno || '-'}</p>
+              <p class="text-gray-800 font-bold">Ada/Parsel: ${record.parsel_b_adano || '-'}/${record.parsel_b_parselno || '-'}</p>
+              <p class="text-gray-800">Alan: ${record.parsel_b_tapualan || '-'} m²</p>
+              <p class="text-gray-800">Zemin Ref: ${record.orman_b_tapuzeminref || '-'}</p>
+              <p class="text-gray-800 mt-1 text-[10px] line-clamp-2" title="${record.orman_b_tapucinsaciklama || '-'}">${record.orman_b_tapucinsaciklama || '-'}</p>
             </div>
           </div>
         </div>
@@ -486,12 +635,15 @@ function renderList() {
               <span class="text-xs text-gray-400 font-medium">#${globalIndex}</span>
               <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800 leading-none">Mükerrer</span>
             </div>
+            <h3 class="text-sm sm:text-base font-bold text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight mb-1">
+              <span class="text-blue-600">A:</span> ${record.ilad || '-'} / ${record.ilcead || '-'} - <span class="text-xs text-gray-500">${record.mahallead || '-'}</span>
+            </h3>
             <h3 class="text-sm sm:text-base font-bold text-gray-900 group-hover:text-emerald-600 transition-colors leading-tight">
-              ${record.ilad || '-'} / ${record.ilcead || '-'}
+              <span class="text-emerald-600">B:</span> ${record.orman_b_ilad || '-'} / ${record.orman_b_ilcead || '-'} - <span class="text-xs text-gray-500">${record.orman_b_mahallead || '-'}</span>
             </h3>
             
-            <div class="flex flex-row items-center justify-between sm:justify-start gap-2 mt-0.5 sm:mt-0">
-               <p class="text-xs text-gray-500">${record.mahallead || '-'}</p>
+            <div class="flex flex-row items-center justify-between sm:justify-start gap-2 mt-1 sm:mt-1">
+               <p class="text-xs text-gray-500 hidden"></p>
                
                <!-- Mobilde (sm:hidden) Orman A ve B'yi ince badge olarak aynı satırda göster -->
                <div class="flex items-center gap-1.5 text-[9px] sm:hidden">
@@ -506,14 +658,18 @@ function renderList() {
           </div>
           
           <!-- Masaüstünde (hidden sm:flex) Orman A ve B Kutuları -->
-          <div class="hidden sm:flex gap-2 text-sm w-1/2">
+          <div class="hidden sm:flex gap-2 text-sm w-[60%]">
             <div class="bg-blue-50/90 px-3 py-1.5 rounded-lg border border-blue-100/50 flex-1 min-w-30">
               <p class="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">Orman A</p>
               <p class="text-gray-800 font-bold text-xs">${record.parsel_a_adano || '-'}/${record.parsel_a_parselno || '-'}</p>
+              <p class="text-gray-800 text-[10px]">Alan: ${record.parsel_a_tapualan || '-'} m² | Zemin Ref: ${record.orman_a_tapuzeminref || '-'}</p>
+              <p class="text-gray-800 text-[10px] truncate max-w-[180px]" title="${record.orman_a_tapucinsaciklama || '-'}">${record.orman_a_tapucinsaciklama || '-'}</p>
             </div>
             <div class="bg-emerald-50/90 px-3 py-1.5 rounded-lg border border-emerald-100/50 flex-1 min-w-30">
               <p class="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">Orman B</p>
               <p class="text-gray-800 font-bold text-xs">${record.parsel_b_adano || '-'}/${record.parsel_b_parselno || '-'}</p>
+              <p class="text-gray-800 text-[10px]">Alan: ${record.parsel_b_tapualan || '-'} m² | Zemin Ref: ${record.orman_b_tapuzeminref || '-'}</p>
+              <p class="text-gray-800 text-[10px] truncate max-w-[180px]" title="${record.orman_b_tapucinsaciklama || '-'}">${record.orman_b_tapucinsaciklama || '-'}</p>
             </div>
           </div>
           
@@ -610,6 +766,22 @@ async function loadData(ilAdi) {
         worker: false, // Mobil kilitlenmeleri önlemek için false
         delimiter: ';',
         skipEmptyLines: true,
+        transformHeader: function(h) {
+          const map = {
+            'orman_a_ilad': 'ilad',
+            'orman_a_ilcead': 'ilcead',
+            'orman_a_mahallead': 'mahallead',
+            'orman_a_adano': 'parsel_a_adano',
+            'orman_b_adano': 'parsel_b_adano',
+            'orman_a_parselno': 'parsel_a_parselno',
+            'orman_b_parselno': 'parsel_b_parselno',
+            'orman_a_geom': 'parsel_a_geom',
+            'orman_b_geom': 'parsel_b_geom',
+            'orman_a_tapualan': 'parsel_a_tapualan',
+            'orman_b_tapualan': 'parsel_b_tapualan'
+          };
+          return map[h] || h;
+        },
         chunk: function (results, parser) {
           parser.pause();
           allData.push(...results.data);
@@ -655,9 +827,66 @@ async function loadData(ilAdi) {
       return ilceA.localeCompare(ilceB, 'tr-TR');
     });
 
+    // Filtre Panelindeki Verileri Başlangıç İçin Doldur
+    filterIlce.innerHTML = '';
+    filterMahalle.innerHTML = '';
+    filterAda.innerHTML = '';
+    filterParsel.innerHTML = '';
+    filterTapuCins.innerHTML = '';
+
+    let ilceler = new Set();
+    let mahalleler = new Set();
+    let adalar = new Set();
+    let parseller = new Set();
+    let cinsler = new Set();
+    
+    allData.forEach(r => {
+      if(r.ilcead) ilceler.add(r.ilcead);
+      if(r.mahallead) mahalleler.add(r.mahallead);
+      if(r.parsel_a_adano) adalar.add(String(r.parsel_a_adano).trim());
+      if(r.parsel_b_adano) adalar.add(String(r.parsel_b_adano).trim());
+      if(r.parsel_a_parselno) parseller.add(String(r.parsel_a_parselno).trim());
+      if(r.parsel_b_parselno) parseller.add(String(r.parsel_b_parselno).trim());
+      if(r.orman_a_tapucinsaciklama) cinsler.add(String(r.orman_a_tapucinsaciklama).trim());
+      if(r.orman_b_tapucinsaciklama) cinsler.add(String(r.orman_b_tapucinsaciklama).trim());
+    });
+    
+    const fillSelect = (selectEl, dataSet, sortNum = false) => {
+      const arr = Array.from(dataSet).filter(val => val !== '');
+      if(sortNum) {
+         arr.sort((a,b) => {
+           const numA = parseFloat(a);
+           const numB = parseFloat(b);
+           if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+           return a.localeCompare(b, 'tr-TR');
+         });
+      } else {
+         arr.sort((a,b) => a.localeCompare(b, 'tr-TR'));
+      }
+      arr.forEach(val => {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = val;
+        selectEl.appendChild(opt);
+      });
+    };
+
+    fillSelect(filterIlce, ilceler);
+    fillSelect(filterMahalle, mahalleler);
+    fillSelect(filterAda, adalar, true);
+    fillSelect(filterParsel, parseller, true);
+    fillSelect(filterTapuCins, cinsler);
+    
+    // Filtre Formunu Temizle (Yeni il seçilmişse)
+    filterKesisimOp.value = '';
+    filterKesisimVal.value = '';
+    searchInput.value = '';
+    updateFilterBadge();
+
     // Fazladan kopyalama yapmamak için referans aktarımı
     filteredData = allData;
     searchInput.disabled = false;
+    if(openFilterBtn) openFilterBtn.disabled = false;
     renderList();
     
     // Yükleme ekranını gizle (Sinematik Fade Out)

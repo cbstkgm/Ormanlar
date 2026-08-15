@@ -37,17 +37,22 @@
              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
            </div>
         </div>
-        <div class="relative flex-1 max-w-[50%] sm:max-w-sm">
-          <input type="text" id="search-input" placeholder="Kayıtlarda ara..."
-            class="w-full pl-9 pr-3 bg-white/10 border border-white/20 rounded-lg text-sm text-white focus:bg-white/20 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/40 transition-colors placeholder-emerald-100/70 h-10"
-            disabled>
-          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg class="h-4 w-4 text-emerald-100/70" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd"
-                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                clip-rule="evenodd" />
-            </svg>
+        <div class="relative flex-1 max-w-[50%] sm:max-w-sm flex items-center gap-1 sm:gap-2">
+          <div class="relative flex-1">
+            <input type="text" id="search-input" placeholder="Kayıtlarda ara..."
+              class="w-full pl-9 pr-3 bg-white/10 border border-white/20 rounded-lg text-sm text-white focus:bg-white/20 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/40 transition-colors placeholder-emerald-100/70 h-10"
+              disabled>
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-4 w-4 text-emerald-100/70" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+              </svg>
+            </div>
           </div>
+          <button id="open-filter-btn" class="h-10 px-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-emerald-50 focus:outline-none transition-colors disabled:opacity-50 flex items-center justify-center disabled:cursor-not-allowed shadow-sm" disabled title="Gelişmiş Filtreleme">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+          </button>
         </div>
         <div class="flex bg-black/20 p-1 rounded-lg hidden flex-shrink-0 border border-white/10" id="view-toggles">
           <button id="view-grid-btn" class="p-1.5 rounded-md bg-white/20 shadow-sm text-white focus:outline-none"
@@ -296,6 +301,87 @@
           <span class="font-medium text-emerald-50 select-none">Kesişim Alanı</span>
         </label>
       </div>
+    </div>
+  </div>
+
+  <!-- Gelişmiş Filtreleme Drawer -->
+  <div id="filter-overlay" class="fixed inset-0 z-[60] bg-emerald-950/40 backdrop-blur-sm hidden transition-opacity opacity-0"></div>
+  <div id="filter-drawer" class="fixed inset-y-0 right-0 z-[70] w-full max-w-md bg-emerald-900/70 backdrop-blur-2xl shadow-[-10px_0_40px_rgba(4,120,87,0.4)] border-l border-emerald-400/20 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+    <!-- Header -->
+    <div class="bg-emerald-950/40 border-b border-emerald-400/20 px-4 py-4 flex justify-between items-center shadow-sm">
+      <div class="flex items-center text-white gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+        </svg>
+        <h2 class="text-lg font-bold tracking-wide text-emerald-50">Gelişmiş Filtreleme</h2>
+      </div>
+      <button id="close-filter-btn" class="p-1.5 rounded-full hover:bg-emerald-500/30 transition-colors text-emerald-200 hover:text-white focus:outline-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Filtre Formu (Scrollable) -->
+    <div class="flex-1 overflow-y-auto p-5 space-y-5 custom-scrollbar">
+      
+      <!-- İlçe Seçimi (Multi-Select) -->
+      <div class="space-y-1">
+        <label class="block text-sm font-semibold text-emerald-100">İlçe Seçimi</label>
+        <div class="text-xs text-emerald-200/70 mb-1">Birden fazla seçmek için CTRL/CMD basılı tutun.</div>
+        <select id="filter-ilce" multiple class="w-full bg-emerald-950/40 border border-emerald-500/30 rounded-lg shadow-inner focus:border-emerald-400 focus:ring-emerald-400 text-sm text-emerald-50 h-24 outline-none"></select>
+      </div>
+
+      <!-- Mahalle Seçimi (Multi-Select) -->
+      <div class="space-y-1">
+        <label class="block text-sm font-semibold text-emerald-100">Mahalle Seçimi</label>
+        <select id="filter-mahalle" multiple class="w-full bg-emerald-950/40 border border-emerald-500/30 rounded-lg shadow-inner focus:border-emerald-400 focus:ring-emerald-400 text-sm text-emerald-50 h-24 outline-none"></select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Ada -->
+        <div class="space-y-1">
+          <label class="block text-sm font-semibold text-emerald-100">Ada No</label>
+          <select id="filter-ada" multiple class="w-full bg-emerald-950/40 border border-emerald-500/30 rounded-lg shadow-inner focus:border-emerald-400 focus:ring-emerald-400 text-sm text-emerald-50 h-24 outline-none"></select>
+        </div>
+        <!-- Parsel -->
+        <div class="space-y-1">
+          <label class="block text-sm font-semibold text-emerald-100">Parsel No</label>
+          <select id="filter-parsel" multiple class="w-full bg-emerald-950/40 border border-emerald-500/30 rounded-lg shadow-inner focus:border-emerald-400 focus:ring-emerald-400 text-sm text-emerald-50 h-24 outline-none"></select>
+        </div>
+      </div>
+
+      <!-- Kesişim Alanı (m²) -->
+      <div class="space-y-1">
+        <label class="block text-sm font-semibold text-emerald-100">Kesişim Alanı (m²)</label>
+        <div class="flex gap-2">
+          <select id="filter-kesisim-op" class="w-1/3 bg-emerald-950/40 border border-emerald-500/30 rounded-lg shadow-inner focus:border-emerald-400 focus:ring-emerald-400 text-sm text-emerald-50 outline-none">
+            <option value="" class="text-emerald-900">Koşul</option>
+            <option value=">" class="text-emerald-900">Büyük (>)</option>
+            <option value="<" class="text-emerald-900">Küçük (<)</option>
+            <option value="=" class="text-emerald-900">Eşit (=)</option>
+          </select>
+          <input type="number" id="filter-kesisim-val" class="w-2/3 bg-emerald-950/40 border border-emerald-500/30 rounded-lg shadow-inner focus:border-emerald-400 focus:ring-emerald-400 text-sm text-emerald-50 placeholder-emerald-300/40 outline-none" placeholder="Miktar (m²)">
+        </div>
+      </div>
+
+      <!-- Tapu Cins Açıklama -->
+      <div class="space-y-1">
+        <label class="block text-sm font-semibold text-emerald-100">Tapu Cins Açıklama</label>
+        <select id="filter-tapucins" multiple class="w-full bg-emerald-950/40 border border-emerald-500/30 rounded-lg shadow-inner focus:border-emerald-400 focus:ring-emerald-400 text-sm text-emerald-50 h-24 outline-none"></select>
+      </div>
+
+    </div>
+
+    <!-- Footer Butonları -->
+    <div class="border-t border-emerald-400/20 p-4 bg-emerald-950/40 flex gap-3">
+      <button id="filter-clear-btn" class="flex-1 py-2.5 px-4 bg-emerald-900/50 hover:bg-emerald-800/80 border border-emerald-500/30 text-emerald-100 rounded-lg font-medium transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+        Temizle
+      </button>
+      <button id="filter-apply-btn" class="flex-[2] py-2.5 px-4 bg-emerald-500 hover:bg-emerald-400 text-emerald-950 rounded-lg font-bold transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.4)] flex justify-center items-center gap-2">
+        <span>Filtrele</span>
+        <span id="filter-badge" class="bg-emerald-900 text-emerald-50 py-0.5 px-2 rounded-full text-xs hidden">0</span>
+      </button>
     </div>
   </div>
 
