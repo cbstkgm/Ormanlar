@@ -4,7 +4,6 @@ import L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import Wkt from 'wicket';
-import JSZip from 'jszip';
 // DOM Elements
 const listContainer = document.getElementById('list-container');
 const loading = document.getElementById('loading');
@@ -565,167 +564,106 @@ function updateProgress(stepId, percent) {
   }
 }
 
-// CSV Verisini ZIP içerisinden Fetch Etme (Cache Destekli)
+// CSV Verisini Parçalı (Chunked) Olarak Fetch Etme
 async function loadData() {
   try {
     recordCount.textContent = 'Veri hazırlanıyor...';
     const statusText = document.getElementById('loading-status');
-    
-    // 1. ZIP dosyasını indir (Cache Kontrolü)
-    const zipUrl = new URL('MukerrerOrmanlar.csv.zip', window.location.href).href;
-    const cacheName = 'ormanlar-cache-v1';
-    
-    statusText.textContent = 'Ağdan veya önbellekten indiriliyor (141 MB)...';
-    
-    let arrayBuffer;
-    let cache = null;
-    let cachedResponse = null;
-
-    try {
-      if ('caches' in window) {
-        cache = await caches.open(cacheName);
-        cachedResponse = await cache.match(zipUrl);
-      }
-    } catch (e) {
-      console.warn("Cache API okuma hatası (Private mode olabilir):", e);
-    }
-    
-    if (cachedResponse) {
-       updateProgress('download', 100);
-       setStepActive('step-download');
-       statusText.textContent = 'Önbellekten (Cache) anında yüklendi!';
-       arrayBuffer = await cachedResponse.arrayBuffer();
-    } else {
-       const response = await fetch(zipUrl);
-       if (!response.ok) throw new Error(`Ağ hatası: ${response.status}`);
-       
-       const contentLength = response.headers.get('content-length');
-       const total = contentLength ? parseInt(contentLength, 10) : 148473000;
-       
-       const reader = response.body.getReader();
-       let received = 0;
-       const chunks = [];
-       
-       while(true) {
-         const {done, value} = await reader.read();
-         if (done) break;
-         chunks.push(value);
-         received += value.length;
-         updateProgress('download', (received / total) * 100);
-       }
-       
-       let chunksAll = new Uint8Array(received);
-       let position = 0;
-       for(let chunk of chunks) {
-         chunksAll.set(chunk, position);
-         position += chunk.length;
-       }
-       arrayBuffer = chunksAll.buffer;
-       
-       // Cache'e kopyala (Hata fırlatmasını önle)
-       if (cache) {
-         try {
-           const cacheResponse = new Response(arrayBuffer, { headers: response.headers });
-           await cache.put(zipUrl, cacheResponse);
-         } catch(e) {
-           console.warn("Cache yazma hatası (Kota aşımı veya yetki):", e);
-         }
-       }
-       
-       setStepActive('step-download');
-       statusText.textContent = 'Dosya başarıyla indirildi ve diske kaydedildi.';
-    }
-    
-    statusText.textContent = 'Veri bilgisayarınıza çıkarılıyor (Unzip)...';
-    
-    // 2. JSZip ile bellekte aç
-    const zip = await JSZip.loadAsync(arrayBuffer);
-    const csvFilename = Object.keys(zip.files).find(name => name.endsWith('.csv'));
-    if (!csvFilename) throw new Error('ZIP içinde .csv bulunamadı!');
-    
-    const csvFile = zip.files[csvFilename];
-    
-    const csvBlob = await csvFile.async('blob', function updateCallback(metadata) {
-        updateProgress('unzip', metadata.percent);
-    });
-    
-    // KRİTİK MEMORY OPTİMİZASYONU: (Mobil cihaz çökmesini / OOM engellemek için)
-    // Zip'ten veri Blob'a (csvBlob) çıkarıldıktan sonra, artık işimize yaramayacak olan 
-    // devasa (141 MB+) arrayBuffer ve JSZip objelerini hafızadan (RAM'den) zorla siliyoruz.
-    // Bu sayede Safari/Chrome, Papa.parse işlemine geçerken %50'den fazla RAM boşaltmış olacak.
-    arrayBuffer = null; 
-    
-    setStepActive('step-unzip');
-    statusText.textContent = 'Veriler haritaya dökülüyor (Parse)...';
-    updateProgress('parse', 10);
     const parseBar = document.getElementById('prog-bar-parse');
-    if (parseBar) parseBar.classList.add('animate-pulse');
     
-    // UI'ın (İlerleme çubuklarının) ekrana çizilmesini garanti altına almak için kısa bir bekleme
+    // Yükleme arayüzü reset
+    updateProgress('download', 0);
+    updateProgress('unzip', 0);
+    updateProgress('parse', 0);
+
+    const chunkUrls = [
+      'chunked_data/part_aa.csv',
+      'chunked_data/part_ab.csv',
+      'chunked_data/part_ac.csv',
+      'chunked_data/part_ad.csv',
+      'chunked_data/part_ae.csv',
+      'chunked_data/part_af.csv'
+    ];
+
+    allData = [];
+    let parsedCount = 0;
+    
+    // Parçaların her birinde yaklaşık eşit veri olduğunu varsayarak ilerleme çubuğu hesaplayacağız
+    const totalParts = chunkUrls.length;
+    
+    setStepActive('step-download');
+
+    for (let i = 0; i < totalParts; i++) {
+       const url = new URL(chunkUrls[i], window.location.href).href;
+       statusText.textContent = `Veri parçası indiriliyor ve işleniyor (${i+1}/${totalParts})...`;
+       
+       const baseProgress = (i / totalParts) * 100;
+       // Arayüzü temsili güncelle (Download kısmı)
+       updateProgress('download', baseProgress + (100 / totalParts) * 0.5); 
+       
+       // Papa Parse ile asenkron Stream
+       await new Promise((resolve, reject) => {
+         Papa.parse(url, {
+           download: true,
+           header: true,
+           worker: false, // Mobil kilitlenmeleri önlemek için false
+           delimiter: ';',
+           skipEmptyLines: true,
+           chunk: function (results, parser) {
+             parser.pause();
+             allData.push(...results.data);
+             parsedCount += results.data.length;
+             
+             // İç ilerleme göstergesi
+             const innerProgress = baseProgress + ((100 / totalParts) * 0.9);
+             updateProgress('parse', innerProgress);
+             
+             setTimeout(() => { parser.resume(); }, 20); // Garbage Collector nefes alsın
+           },
+           complete: function() {
+             resolve();
+           },
+           error: function(err) {
+             reject(err);
+           }
+         });
+       });
+       
+       updateProgress('download', baseProgress + (100 / totalParts));
+       updateProgress('parse', baseProgress + (100 / totalParts));
+    }
+    
+    // 2. Adım (Çıkartma) pas geçildiği için görsel olarak %100 yapıyoruz
+    setStepActive('step-unzip');
+    updateProgress('unzip', 100);
+    
+    updateProgress('parse', 100);
+    setStepActive('step-parse');
+    statusText.textContent = 'Harita hazırlandı!';
+    if (parseBar) parseBar.classList.remove('animate-pulse');
+    
+    // Verileri İl ve İlçeye göre (A'dan Z'ye) Türkçe karakter uyumlu sırala
+    allData.sort((a, b) => {
+      const ilA = a.ilad || '';
+      const ilB = b.ilad || '';
+      const ilFarki = ilA.localeCompare(ilB, 'tr-TR');
+      if (ilFarki !== 0) return ilFarki;
+      
+      const ilceA = a.ilcead || '';
+      const ilceB = b.ilcead || '';
+      return ilceA.localeCompare(ilceB, 'tr-TR');
+    });
+
+    // Fazladan kopyalama yapmamak için referans aktarımı
+    filteredData = allData;
+    searchInput.disabled = false;
+    renderList();
+    
+    // Yükleme ekranını gizle (Sinematik Fade Out)
     setTimeout(() => {
-      // Çökmeleri önlemek için veriyi global diziye parçalar halinde ekleyeceğiz
-      allData = [];
-      let parsedCount = 0;
-
-      Papa.parse(csvBlob, {
-        header: true,
-        worker: false, // Worker kullanımı Github Pages'te yol sorununa/donmaya yol açtığı için iptal edildi.
-        delimiter: ';',
-        skipEmptyLines: true,
-        // Chunk (Parça Parça İşleme): Mobil tarayıcı (Safari/Chrome) donmasını/çökmesini %100 önler
-        chunk: function (results, parser) {
-          parser.pause(); // Tarayıcıya nefes aldırmak için işlemi anlık durdur
-          
-          allData.push(...results.data);
-          parsedCount += results.data.length;
-          
-          // Ekrana yüzeysel bir yüzde yansıt (Tahmini)
-          const estimate = Math.min(99, 10 + Math.floor((parsedCount / 9000) * 90));
-          updateProgress('parse', estimate);
-          
-          // 25ms mola (Garbage Collector RAM'i temizler, telefon kilitlenmez)
-          setTimeout(() => {
-             parser.resume();
-          }, 25);
-        },
-        complete: function () {
-          updateProgress('parse', 100);
-          setStepActive('step-parse');
-          statusText.textContent = 'Harita hazırlandı!';
-          if (parseBar) parseBar.classList.remove('animate-pulse');
-          
-          // Verileri İl ve İlçeye göre (A'dan Z'ye) Türkçe karakter uyumlu sırala
-          allData.sort((a, b) => {
-            const ilA = a.ilad || '';
-            const ilB = b.ilad || '';
-            const ilFarki = ilA.localeCompare(ilB, 'tr-TR');
-            if (ilFarki !== 0) return ilFarki;
-            
-            const ilceA = a.ilcead || '';
-            const ilceB = b.ilcead || '';
-            return ilceA.localeCompare(ilceB, 'tr-TR');
-          });
-
-          // Fazladan kopyalama (RAM) yapmamak için doğrudan referans atıyoruz
-          filteredData = allData;
-          searchInput.disabled = false;
-          renderList();
-          
-          // Yükleme ekranını gizle (Sinematik Fade Out)
-          setTimeout(() => {
-             loading.classList.add('opacity-0');
-             setTimeout(() => { loading.classList.add('hidden'); }, 700);
-          }, 800);
-        },
-        error: function (error) {
-          console.error("CSV Ayrıştırma Hatası:", error);
-          statusText.textContent = 'Veriler ayrıştırılırken hata oluştu!';
-          statusText.classList.add('text-red-400');
-          recordCount.textContent = 'Hata!';
-        }
-      });
-    }, 500);
-
+       loading.classList.add('opacity-0');
+       setTimeout(() => { loading.classList.add('hidden'); }, 700);
+    }, 800);
 
   } catch (err) {
     console.error("CSV Yükleme Hatası:", err);
