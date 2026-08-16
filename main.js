@@ -98,9 +98,9 @@ if (downloadDropdownBtn && downloadDropdownMenu) {
       zipOverlay.classList.add('flex');
       zipProgressBar.style.width = '0%';
       zipProgressText.textContent = '0%';
-      
+
       const zip = new JSZip();
-      
+
       const response = await fetch(fetchUrl);
       if (!response.ok) throw new Error('Dosya bulunamadı.');
 
@@ -111,30 +111,30 @@ if (downloadDropdownBtn && downloadDropdownMenu) {
       const reader = response.body.getReader();
       const chunks = [];
 
-      while(true) {
-        const {done, value} = await reader.read();
+      while (true) {
+        const { done, value } = await reader.read();
         if (done) break;
         chunks.push(value);
         loaded += value.length;
-        
+
         let progress = Math.round((loaded / total) * 50);
         if (progress > 50) progress = 50;
         zipProgressBar.style.width = `${progress}%`;
         zipProgressText.textContent = `İndiriliyor: ${progress}%`;
       }
-      
+
       const blob = new Blob(chunks, { type: 'text/csv' });
       zip.file(fileName, blob);
-      
+
       const content = await zip.generateAsync({ type: 'blob', compression: "DEFLATE", compressionOptions: { level: 6 } }, function updateCallback(metadata) {
-          const zipProgress = Math.round(50 + (metadata.percent / 2));
-          zipProgressBar.style.width = `${zipProgress}%`;
-          zipProgressText.textContent = `Sıkıştırılıyor: ${zipProgress}%`;
+        const zipProgress = Math.round(50 + (metadata.percent / 2));
+        zipProgressBar.style.width = `${zipProgress}%`;
+        zipProgressText.textContent = `Sıkıştırılıyor: ${zipProgress}%`;
       });
-      
+
       zipProgressBar.style.width = '100%';
       zipProgressText.textContent = '100% - Tamamlandı!';
-      
+
       const url = window.URL.createObjectURL(content);
       const a = document.createElement('a');
       a.style.display = 'none';
@@ -144,7 +144,7 @@ if (downloadDropdownBtn && downloadDropdownMenu) {
       a.click();
       window.URL.revokeObjectURL(url);
       a.remove();
-      
+
       setTimeout(() => {
         zipOverlay.classList.remove('flex');
         zipOverlay.classList.add('hidden');
@@ -255,13 +255,13 @@ function updateViewToggleUI() {
   if (currentViewMode === 'grid') {
     viewGridBtn.classList.add('bg-white/20', 'shadow-sm', 'text-white');
     viewGridBtn.classList.remove('text-emerald-100/70', 'hover:text-white', 'hover:bg-white/10');
-    
+
     viewListBtn.classList.remove('bg-white/20', 'shadow-sm', 'text-white');
     viewListBtn.classList.add('text-emerald-100/70', 'hover:text-white', 'hover:bg-white/10');
   } else {
     viewListBtn.classList.add('bg-white/20', 'shadow-sm', 'text-white');
     viewListBtn.classList.remove('text-emerald-100/70', 'hover:text-white', 'hover:bg-white/10');
-    
+
     viewGridBtn.classList.remove('bg-white/20', 'shadow-sm', 'text-white');
     viewGridBtn.classList.add('text-emerald-100/70', 'hover:text-white', 'hover:bg-white/10');
   }
@@ -319,10 +319,10 @@ function applyFilters() {
   filteredData = allData.filter(record => {
     // 1. Hızlı Arama
     if (searchTerm) {
-       const hasSearchTerm = Object.values(record).some(val => 
-          val && String(val).toLocaleLowerCase('tr-TR').includes(searchTerm)
-       );
-       if (!hasSearchTerm) return false;
+      const hasSearchTerm = Object.values(record).some(val =>
+        val && String(val).toLocaleLowerCase('tr-TR').includes(searchTerm)
+      );
+      if (!hasSearchTerm) return false;
     }
     // 2. İlçe Kontrolü
     if (selectedIlceler.length > 0 && !selectedIlceler.includes(record.ilcead)) return false;
@@ -330,32 +330,32 @@ function applyFilters() {
     if (selectedMahalleler.length > 0 && !selectedMahalleler.includes(record.mahallead)) return false;
     // 4. Ada
     if (selectedAdalar.length > 0) {
-       const adaA = String(record.parsel_a_adano || '').trim();
-       const adaB = String(record.parsel_b_adano || '').trim();
-       if (!selectedAdalar.includes(adaA) && !selectedAdalar.includes(adaB)) return false;
+      const adaA = String(record.parsel_a_adano || '').trim();
+      const adaB = String(record.parsel_b_adano || '').trim();
+      if (!selectedAdalar.includes(adaA) && !selectedAdalar.includes(adaB)) return false;
     }
     // 5. Parsel
     if (selectedParseller.length > 0) {
-       const parA = String(record.parsel_a_parselno || '').trim();
-       const parB = String(record.parsel_b_parselno || '').trim();
-       if (!selectedParseller.includes(parA) && !selectedParseller.includes(parB)) return false;
+      const parA = String(record.parsel_a_parselno || '').trim();
+      const parB = String(record.parsel_b_parselno || '').trim();
+      if (!selectedParseller.includes(parA) && !selectedParseller.includes(parB)) return false;
     }
     // 6. Kesişim
     if (kesOp && !isNaN(kesVal)) {
-       const recKes = parseFloat(record.kesisim_alani_m2 || 0);
-       if (kesOp === '>' && recKes <= kesVal) return false;
-       if (kesOp === '<' && recKes >= kesVal) return false;
-       if (kesOp === '=' && recKes !== kesVal) return false;
+      const recKes = parseFloat(record.kesisim_alani_m2 || 0);
+      if (kesOp === '>' && recKes <= kesVal) return false;
+      if (kesOp === '<' && recKes >= kesVal) return false;
+      if (kesOp === '=' && recKes !== kesVal) return false;
     }
     // 7. Tapu Cins
     if (selectedCinsler.length > 0) {
-       const cinsA = String(record.orman_a_tapucinsaciklama || '').trim();
-       const cinsB = String(record.orman_b_tapucinsaciklama || '').trim();
-       if (!selectedCinsler.includes(cinsA) && !selectedCinsler.includes(cinsB)) return false;
+      const cinsA = String(record.orman_a_tapucinsaciklama || '').trim();
+      const cinsB = String(record.orman_b_tapucinsaciklama || '').trim();
+      if (!selectedCinsler.includes(cinsA) && !selectedCinsler.includes(cinsB)) return false;
     }
     return true;
   });
-  
+
   currentPage = 1;
   renderList();
   updateFilterBadge();
@@ -369,7 +369,7 @@ function updateFilterBadge() {
   if (filterParsel.selectedOptions.length > 0) count++;
   if (filterKesisimOp.value !== '' && filterKesisimVal.value !== '') count++;
   if (filterTapuCins.selectedOptions.length > 0) count++;
-  
+
   if (count > 0) {
     filterBadge.textContent = count;
     filterBadge.classList.remove('hidden');
@@ -417,14 +417,14 @@ if (filterIlce) {
     const selectedIlceler = Array.from(filterIlce.selectedOptions).map(opt => opt.value);
     filterMahalle.innerHTML = '';
     let currentMahalleler = new Set();
-    
+
     allData.forEach(r => {
       if (selectedIlceler.length === 0 || selectedIlceler.includes(r.ilcead)) {
         if (r.mahallead) currentMahalleler.add(r.mahallead);
       }
     });
-    
-    const sortedMahalleler = Array.from(currentMahalleler).sort((a,b) => a.localeCompare(b, 'tr-TR'));
+
+    const sortedMahalleler = Array.from(currentMahalleler).sort((a, b) => a.localeCompare(b, 'tr-TR'));
     sortedMahalleler.forEach(mah => {
       const opt = document.createElement('option');
       opt.value = mah;
@@ -459,10 +459,10 @@ toggleLayerInt.addEventListener('change', (e) => {
 // Haritayı İlklendirme
 function initMap() {
   if (map) return;
-  
+
   // Custom SVG Renderer (Pattern için)
   const myRenderer = L.svg({ padding: 0.5 });
-  
+
   map = L.map('map', { renderer: myRenderer }).setView([39.0, 35.0], 6); // Türkiye geneli
 
   // --- HARİTA ALTLIKLARI (BASEMAPS) ---
@@ -513,7 +513,7 @@ function initMap() {
   };
 
   // Varsayılan (Default) Harita
-  googleTerrain.addTo(map);
+  googleSat.addTo(map);
 
   // Katman Seçici Kontrolü (Sağ Üst)
   L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
@@ -703,20 +703,20 @@ function renderList() {
   listContainer.classList.remove('hidden');
   viewTogglesContainer.classList.remove('hidden');
   paginationContainer.classList.remove('hidden'); // Pagination'ı göster
-  
+
   recordCount.textContent = `${filteredData.length} Kayıt Bulundu`;
 
   // Paginator Hesaplamaları
   const totalItems = filteredData.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  
+
   // Güvenlik: Sayfa sınırları aşılmasın
   if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
   if (currentPage < 1) currentPage = 1;
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-  
+
   // Paginator UI Güncelleme
   pageInfo.textContent = totalItems === 0 ? '0' : `${startIndex + 1} - ${endIndex} of ${totalItems}`;
   prevPageBtn.disabled = currentPage === 1;
@@ -727,7 +727,7 @@ function renderList() {
 
   // Mevcut dinamik class'ları temizle ve padding statik sınıflarını koru
   listContainer.className = 'px-2 sm:px-4 pt-4 pb-24 content-start';
-  
+
   if (currentViewMode === 'grid') {
     listContainer.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-6');
   } else {
@@ -737,8 +737,8 @@ function renderList() {
   listContainer.innerHTML = ''; // Temizle
 
   if (pageData.length === 0) {
-     listContainer.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Kayıt bulunamadı.</div>';
-     return;
+    listContainer.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Kayıt bulunamadı.</div>';
+    return;
   }
 
   pageData.forEach((record, idx) => {
@@ -747,8 +747,8 @@ function renderList() {
     if (!record.parsel_a_geom) return;
 
     const card = document.createElement('div');
-    card.className = "bg-white/90 rounded-xl shadow-lg border border-white/50 hover:bg-white/95 hover:shadow-xl transition-all cursor-pointer overflow-hidden group " + 
-                     (currentViewMode === 'grid' ? "flex flex-col" : "flex flex-col sm:flex-row items-stretch");
+    card.className = "bg-white/90 rounded-xl shadow-lg border border-white/50 hover:bg-white/95 hover:shadow-xl transition-all cursor-pointer overflow-hidden group " +
+      (currentViewMode === 'grid' ? "flex flex-col" : "flex flex-col sm:flex-row items-stretch");
 
     // Card HTML
     if (currentViewMode === 'grid') {
@@ -877,7 +877,7 @@ async function updateVisitorCount() {
     const data = await res.json();
     const countEl = document.getElementById('visitor-count');
     if (countEl) countEl.textContent = data.value.toLocaleString();
-  } catch(e) {
+  } catch (e) {
     const countEl = document.getElementById('visitor-count');
     if (countEl) countEl.textContent = '...';
   }
@@ -906,12 +906,12 @@ async function loadData(ilAdi) {
     const parseBar = document.getElementById('prog-bar-parse');
     const loadingSteps = document.getElementById('loading-steps');
     const loadingSpinner = document.getElementById('loading-spinner');
-    
+
     // UI Ayarları
     loading.classList.remove('hidden', 'opacity-0');
     loadingSteps.classList.remove('hidden');
     loadingSpinner.classList.remove('hidden');
-    
+
     // Yükleme arayüzü reset
     updateProgress('download', 0);
     updateProgress('unzip', 0);
@@ -919,7 +919,7 @@ async function loadData(ilAdi) {
 
     allData = [];
     let parsedCount = 0;
-    
+
     setStepActive('step-download');
     statusText.textContent = `${ilAdi} verisi indiriliyor ve işleniyor...`;
 
@@ -932,7 +932,7 @@ async function loadData(ilAdi) {
         worker: false, // Mobil kilitlenmeleri önlemek için false
         delimiter: ';',
         skipEmptyLines: true,
-        transformHeader: function(h) {
+        transformHeader: function (h) {
           const map = {
             'orman_a_ilad': 'ilad',
             'orman_a_ilcead': 'ilcead',
@@ -952,35 +952,35 @@ async function loadData(ilAdi) {
           parser.pause();
           allData.push(...results.data);
           parsedCount += results.data.length;
-          
+
           // Ortalama bir dosya büyüklüğüne göre temsili yüzde
           let progress = Math.min(99, (parsedCount / 50000) * 100);
           updateProgress('download', progress);
           updateProgress('parse', progress);
-          
+
           setTimeout(() => { parser.resume(); }, 20); // Garbage Collector nefes alsın
         },
-        complete: function() {
+        complete: function () {
           resolve();
         },
-        error: function(err) {
+        error: function (err) {
           reject(err);
         }
       });
     });
-       
+
     updateProgress('download', 100);
     updateProgress('parse', 100);
-    
+
     // 2. Adım (Çıkartma) pas geçildiği için görsel olarak %100 yapıyoruz
     setStepActive('step-unzip');
     updateProgress('unzip', 100);
-    
+
     updateProgress('parse', 100);
     setStepActive('step-parse');
     statusText.textContent = 'Harita hazırlandı!';
     if (parseBar) parseBar.classList.remove('animate-pulse');
-    
+
     // Verileri Kesişim Alanına göre (Büyükten Küçüğe) sırala
     allData.sort((a, b) => {
       const alanA = parseFloat(a.kesisim_alani_m2) || 0;
@@ -1000,29 +1000,29 @@ async function loadData(ilAdi) {
     let adalar = new Set();
     let parseller = new Set();
     let cinsler = new Set();
-    
+
     allData.forEach(r => {
-      if(r.ilcead) ilceler.add(r.ilcead);
-      if(r.mahallead) mahalleler.add(r.mahallead);
-      if(r.parsel_a_adano) adalar.add(String(r.parsel_a_adano).trim());
-      if(r.parsel_b_adano) adalar.add(String(r.parsel_b_adano).trim());
-      if(r.parsel_a_parselno) parseller.add(String(r.parsel_a_parselno).trim());
-      if(r.parsel_b_parselno) parseller.add(String(r.parsel_b_parselno).trim());
-      if(r.orman_a_tapucinsaciklama) cinsler.add(String(r.orman_a_tapucinsaciklama).trim());
-      if(r.orman_b_tapucinsaciklama) cinsler.add(String(r.orman_b_tapucinsaciklama).trim());
+      if (r.ilcead) ilceler.add(r.ilcead);
+      if (r.mahallead) mahalleler.add(r.mahallead);
+      if (r.parsel_a_adano) adalar.add(String(r.parsel_a_adano).trim());
+      if (r.parsel_b_adano) adalar.add(String(r.parsel_b_adano).trim());
+      if (r.parsel_a_parselno) parseller.add(String(r.parsel_a_parselno).trim());
+      if (r.parsel_b_parselno) parseller.add(String(r.parsel_b_parselno).trim());
+      if (r.orman_a_tapucinsaciklama) cinsler.add(String(r.orman_a_tapucinsaciklama).trim());
+      if (r.orman_b_tapucinsaciklama) cinsler.add(String(r.orman_b_tapucinsaciklama).trim());
     });
-    
+
     const fillSelect = (selectEl, dataSet, sortNum = false) => {
       const arr = Array.from(dataSet).filter(val => val !== '');
-      if(sortNum) {
-         arr.sort((a,b) => {
-           const numA = parseFloat(a);
-           const numB = parseFloat(b);
-           if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-           return a.localeCompare(b, 'tr-TR');
-         });
+      if (sortNum) {
+        arr.sort((a, b) => {
+          const numA = parseFloat(a);
+          const numB = parseFloat(b);
+          if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+          return a.localeCompare(b, 'tr-TR');
+        });
       } else {
-         arr.sort((a,b) => a.localeCompare(b, 'tr-TR'));
+        arr.sort((a, b) => a.localeCompare(b, 'tr-TR'));
       }
       arr.forEach(val => {
         const opt = document.createElement('option');
@@ -1037,7 +1037,7 @@ async function loadData(ilAdi) {
     fillSelect(filterAda, adalar, true);
     fillSelect(filterParsel, parseller, true);
     fillSelect(filterTapuCins, cinsler);
-    
+
     // Filtre Formunu Temizle (Yeni il seçilmişse)
     filterKesisimOp.value = '';
     filterKesisimVal.value = '';
@@ -1047,55 +1047,55 @@ async function loadData(ilAdi) {
     // Fazladan kopyalama yapmamak için referans aktarımı
     filteredData = allData;
     searchInput.disabled = false;
-    if(openFilterBtn) openFilterBtn.disabled = false;
+    if (openFilterBtn) openFilterBtn.disabled = false;
     renderList();
-    
+
     // Yükleme ekranını gizle (Sinematik Fade Out)
     setTimeout(() => {
-       loading.classList.add('opacity-0');
-       setTimeout(() => { loading.classList.add('hidden'); }, 700);
+      loading.classList.add('opacity-0');
+      setTimeout(() => { loading.classList.add('hidden'); }, 700);
     }, 800);
 
   } catch (err) {
     console.error("CSV Yükleme Hatası:", err);
     const statusText = document.getElementById('loading-status');
     if (statusText) {
-       statusText.textContent = `Hata: ${err.message}`;
-       statusText.classList.add('text-red-400');
+      statusText.textContent = `Hata: ${err.message}`;
+      statusText.classList.add('text-red-400');
     }
     recordCount.textContent = 'Hata!';
   }
 }
 
 // İl Listesi
-const iller = ["ADANA","ADIYAMAN","AFYONKARAHİSAR","AKSARAY","AMASYA","ANKARA","ANTALYA","ARDAHAN","ARTVİN","AYDIN","AĞRI","BALIKESİR","BARTIN","BATMAN","BAYBURT","BOLU","BURDUR","BURSA","BİLECİK","BİNGÖL","BİTLİS","DENİZLİ","DÜZCE","DİYARBAKIR","EDİRNE","ELAZIĞ","ERZURUM","ERZİNCAN","ESKİŞEHİR","GAZİANTEP","GÜMÜŞHANE","GİRESUN","HAKKARİ","HATAY","ISPARTA","KAHRAMANMARAŞ","KARABÜK","KARAMAN","KARS","KASTAMONU","KAYSERİ","KIRIKKALE","KIRKLARELİ","KIRŞEHİR","KOCAELİ","KONYA","KÜTAHYA","KİLİS","MALATYA","MANİSA","MARDİN","MERSİN","MUĞLA","MUŞ","NEVŞEHİR","NİĞDE","ORDU","OSMANİYE","RİZE","SAKARYA","SAMSUN","SİNOP","SİVAS","SİİRT","TEKİRDAĞ","TOKAT","TRABZON","TUNCELİ","UŞAK","VAN","YALOVA","YOZGAT","ZONGULDAK","ÇANAKKALE","ÇANKIRI","ÇORUM","İSTANBUL","İZMİR","ŞIRNAK"];
+const iller = ["ADANA", "ADIYAMAN", "AFYONKARAHİSAR", "AKSARAY", "AMASYA", "ANKARA", "ANTALYA", "ARDAHAN", "ARTVİN", "AYDIN", "AĞRI", "BALIKESİR", "BARTIN", "BATMAN", "BAYBURT", "BOLU", "BURDUR", "BURSA", "BİLECİK", "BİNGÖL", "BİTLİS", "DENİZLİ", "DÜZCE", "DİYARBAKIR", "EDİRNE", "ELAZIĞ", "ERZURUM", "ERZİNCAN", "ESKİŞEHİR", "GAZİANTEP", "GÜMÜŞHANE", "GİRESUN", "HAKKARİ", "HATAY", "ISPARTA", "KAHRAMANMARAŞ", "KARABÜK", "KARAMAN", "KARS", "KASTAMONU", "KAYSERİ", "KIRIKKALE", "KIRKLARELİ", "KIRŞEHİR", "KOCAELİ", "KONYA", "KÜTAHYA", "KİLİS", "MALATYA", "MANİSA", "MARDİN", "MERSİN", "MUĞLA", "MUŞ", "NEVŞEHİR", "NİĞDE", "ORDU", "OSMANİYE", "RİZE", "SAKARYA", "SAMSUN", "SİNOP", "SİVAS", "SİİRT", "TEKİRDAĞ", "TOKAT", "TRABZON", "TUNCELİ", "UŞAK", "VAN", "YALOVA", "YOZGAT", "ZONGULDAK", "ÇANAKKALE", "ÇANKIRI", "ÇORUM", "İSTANBUL", "İZMİR", "ŞIRNAK"];
 
 // Uygulama Başlatma
 document.addEventListener('DOMContentLoaded', () => {
   if (itemsPerPageSelect) {
     itemsPerPageSelect.value = itemsPerPage.toString();
   }
-  
+
   updateViewToggleUI();
   updateVisitorCount();
-  
+
   // İl seçiciyi doldur
   const citySelect = document.getElementById('header-city-select');
-  
+
   if (citySelect) {
-      const siraliIller = iller.sort((a, b) => a.localeCompare(b, 'tr-TR'));
-      siraliIller.forEach(il => {
-          const option = document.createElement('option');
-          option.value = il;
-          option.textContent = il;
-          citySelect.appendChild(option);
-      });
-      
-      citySelect.addEventListener('change', () => {
-          const seciliIl = citySelect.value;
-          if (seciliIl) {
-              loadData(seciliIl);
-          }
-      });
+    const siraliIller = iller.sort((a, b) => a.localeCompare(b, 'tr-TR'));
+    siraliIller.forEach(il => {
+      const option = document.createElement('option');
+      option.value = il;
+      option.textContent = il;
+      citySelect.appendChild(option);
+    });
+
+    citySelect.addEventListener('change', () => {
+      const seciliIl = citySelect.value;
+      if (seciliIl) {
+        loadData(seciliIl);
+      }
+    });
   }
 });
